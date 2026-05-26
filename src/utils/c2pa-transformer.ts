@@ -129,8 +129,15 @@ export function getFriendlyGenerator(generator: string): { display: string; isAi
   if (genLower.includes("stable diffusion") || genLower.includes("stablediffusion")) {
     return { display: "Stable Diffusion", isAi: true, tool: "Stable Diffusion" };
   }
+  // Google — match "google c2pa", "google media processing", "google gemini", "imagen"
+  if (genLower.includes("google c2pa") || genLower.includes("google media") || genLower.includes("google core generator")) {
+    return { display: "Google AI (Gemini / Imagen)", isAi: true, tool: "Google Gemini" };
+  }
   if (genLower.includes("gemini")) {
     return { display: "Google Gemini", isAi: true, tool: "Gemini" };
+  }
+  if (genLower.includes("imagen")) {
+    return { display: "Google Imagen", isAi: true, tool: "Imagen" };
   }
   if (genLower.includes("runway")) {
     return { display: "Runway Gen", isAi: true, tool: "Runway" };
@@ -142,7 +149,7 @@ export function getFriendlyGenerator(generator: string): { display: string; isAi
     return { display: "C2PA CLI Tool", isAi: false };
   }
 
-  // Parse standard generator format, e.g., name/version
+  // Parse standard generator format: "name/version"
   const match = generator.match(/^([^/]+)/);
   const baseName = match ? match[1].trim() : generator;
   
@@ -191,22 +198,25 @@ export async function transformC2paResult(reader: any): Promise<ProvenanceReport
   let trustReason = "Content credentials verification failed.";
 
   if (valState === "Valid" || valState === "valid") {
-    // Check if there are warnings like untrusted credentials
-    const hasUntrusted = valStatus.some((s: any) => 
-      s.code === "signingCredential.untrusted" || 
+    // Always treat a valid (untampered) signature as VERIFIED regardless of CA trust
+    // Many AI generators (Google, Adobe test, etc.) use internal CAs not in the global trust store
+    trustLevel = "VERIFIED";
+    trustReason = "Content credentials are cryptographically valid and the asset has not been tampered with.";
+
+    const hasUntrusted = valStatus.some((s: any) =>
+      s.code === "signingCredential.untrusted" ||
       (s.explanation && s.explanation.includes("untrusted"))
     );
-
     if (hasUntrusted) {
-      trustLevel = "VERIFIED";
-      trustReason = "Content credentials are cryptographically valid and untampered, though signed by an unrecognized or test certificate authority.";
-    } else {
-      trustLevel = "VERIFIED";
-      trustReason = "Content credentials are valid, signed by a trusted authority, and content has not been tampered with.";
+      trustReason = "Content credentials are cryptographically valid and untampered, signed by an internal or test certificate authority (e.g. Google, Adobe internal CA).";
     }
   } else if (valState === "Invalid" || valState === "invalid") {
     trustLevel = "UNVERIFIED";
     trustReason = "This asset has invalid content credentials. The signature is broken or the file has been tampered with after signing.";
+  } else {
+    // Unknown validation state — assume partial
+    trustLevel = "PARTIAL";
+    trustReason = "Content credentials were found but the validation state could not be fully determined.";
   }
 
   // 2. Extract Embedded Thumbnail as Base64 data URI

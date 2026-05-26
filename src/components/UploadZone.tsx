@@ -4,7 +4,6 @@ import React, { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, AlertCircle, ShieldCheck } from "@/components/icons";
 import useStore from "@/store/useStore";
-import { analyzeFile } from "@/utils/analyze";
 
 export const UploadZone: React.FC = () => {
   const [isDragActive, setIsDragActive] = useState(false);
@@ -45,14 +44,22 @@ export const UploadZone: React.FC = () => {
     const startTime = Date.now();
 
     try {
-      // Runs 100% in the browser — no server needed
-      const report = await analyzeFile(file);
+      const formData = new FormData();
+      formData.append("file", file);
 
-      // Keep a minimum duration for the scanning UI
+      const response = await fetch("/api/verify", { method: "POST", body: formData });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.trustReason || "Failed to analyze metadata.");
+      }
+
+      const report = await response.json();
+
       const elapsed = Date.now() - startTime;
       const minDuration = 2200;
       if (elapsed < minDuration) {
-        await new Promise((resolve) => setTimeout(resolve, minDuration - elapsed));
+        await new Promise(resolve => setTimeout(resolve, minDuration - elapsed));
       }
 
       setAnalysis(report);
