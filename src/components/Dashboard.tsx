@@ -5,12 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft, ShieldCheck, ShieldAlert, ShieldX, 
   History, Cpu, FileText, FileJson, Calendar, 
-  Hash, Code, Download, RefreshCw, ChevronDown, 
-  ChevronRight, Award, Lock, ExternalLink, Eye
+  Code, Download, RefreshCw, ChevronDown, 
+  ChevronRight, Award, Lock, ExternalLink, Eye, Copy, Check
 } from "@/components/icons";
 import useStore from "@/store/useStore";
 
-type ExplorerTab = "visual" | "json" | "js" | "cert";
+type ExplorerTab = "visual" | "json" | "cert";
 
 export const Dashboard: React.FC = () => {
   const activeAnalysis = useStore((state) => state.activeAnalysis);
@@ -19,7 +19,7 @@ export const Dashboard: React.FC = () => {
   
   const [activeTab, setActiveTab] = useState<ExplorerTab>("visual");
   const [expandedAssertion, setExpandedAssertion] = useState<string | null>(null);
-  const [devMode, setDevMode] = useState(false);
+  const [copiedAssertion, setCopiedAssertion] = useState<string | null>(null);
 
   if (!activeAnalysis) return null;
 
@@ -27,7 +27,6 @@ export const Dashboard: React.FC = () => {
     trustLevel,
     trustReason,
     activeManifest,
-    validationStatus,
     validationState,
     allManifests,
     forensic,
@@ -35,6 +34,12 @@ export const Dashboard: React.FC = () => {
 
   const toggleAssertion = (label: string) => {
     setExpandedAssertion(expandedAssertion === label ? null : label);
+  };
+
+  const handleCopyText = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedAssertion(label);
+    setTimeout(() => setCopiedAssertion(null), 2000);
   };
 
   const downloadReport = () => {
@@ -47,126 +52,127 @@ export const Dashboard: React.FC = () => {
     downloadAnchor.remove();
   };
 
-  const getTrustBadgeStyles = () => {
+  const getTrustStatusStyles = () => {
     switch (trustLevel) {
       case "VERIFIED":
         return {
-          icon: <ShieldCheck className="w-8 h-8 text-success" />,
-          colorClass: "text-success border-success/30 bg-success/5",
-          text: "Verified Credentials",
+          icon: <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />,
+          borderColor: "border-l-emerald-500",
+          glowColor: "rgba(16, 185, 129, 0.15)",
+          textColor: "text-emerald-400",
+          title: "Verified Credentials",
         };
       case "PARTIAL":
         const isMetadataScan = validationState === "MetadataDetected";
         return {
-          icon: <ShieldAlert className="w-8 h-8 text-warning" />,
-          colorClass: "text-warning border-warning/30 bg-warning/5",
-          text: isMetadataScan ? "AI Metadata Detected" : "Untrusted Certificate",
+          icon: <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0" />,
+          borderColor: "border-l-amber-500",
+          glowColor: "rgba(245, 158, 11, 0.15)",
+          textColor: "text-amber-400",
+          title: isMetadataScan ? "AI Metadata Detected" : "Untrusted Certificate",
         };
       case "UNVERIFIED":
       default:
         return {
-          icon: <ShieldX className="w-8 h-8 text-error" />,
-          colorClass: "text-error border-error/30 bg-error/5",
-          text: "Unverified Asset",
+          icon: <ShieldX className="w-5 h-5 text-red-400 shrink-0" />,
+          borderColor: "border-l-red-500",
+          glowColor: "rgba(239, 68, 68, 0.15)",
+          textColor: "text-red-400",
+          title: "Unverified Asset",
         };
     }
   };
 
-  const trustBadge = getTrustBadgeStyles();
+  const trustStyle = getTrustStatusStyles();
 
   const getOriginName = () => {
     if (!activeManifest) return "Unknown Origin";
-    return activeManifest.aiGeneratorTool || activeManifest.claimGeneratorDisplay.split("via").pop()?.trim() || "Unknown Software";
+    return activeManifest.aiGeneratorTool || activeManifest.claimGeneratorDisplay?.split("via")?.pop()?.trim() || "Unknown Software";
   };
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-6 py-10 z-10 flex flex-col gap-8 min-h-screen">
+    <div className="w-full max-w-6xl mx-auto px-6 py-6 z-10 flex flex-col gap-10 min-h-screen">
       
       {/* Top Header Actions */}
-      <div className="flex justify-between items-center pb-6 border-b border-card-border/50">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-white/[0.04] z-20">
         <button
           onClick={resetAll}
-          className="flex items-center gap-2 text-sm font-medium text-foreground/50 hover:text-white transition-colors"
+          className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/50 hover:text-white transition-all bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.05] hover:border-white/[0.1] rounded-full py-2.5 px-4.5 cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Upload new image</span>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>New Upload</span>
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <button
             onClick={() => setView("compare")}
-            className="flex items-center gap-2 text-sm font-medium border border-card-border/60 text-white hover:bg-white/5 transition-all rounded-xl py-2 px-4"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider border border-white/[0.05] hover:border-white/[0.12] text-white/75 hover:text-white bg-white/[0.01] hover:bg-white/[0.05] transition-all rounded-full py-2.5 px-4.5 cursor-pointer"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5 text-indigo-400" />
             <span>Compare Flow</span>
           </button>
           <button
             onClick={downloadReport}
-            className="flex items-center gap-2 text-sm font-medium bg-white text-black hover:bg-white/90 transition-all rounded-xl py-2 px-4 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider bg-white text-black hover:bg-white/90 transition-all rounded-full py-2.5 px-4.5 shadow-[0_4px_20px_rgba(255,255,255,0.06)] cursor-pointer"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-3.5 h-3.5" />
             <span>Export Report</span>
           </button>
         </div>
       </div>
 
       {/* Split-Screen Main Layout */}
-      <div className="flex flex-col lg:flex-row gap-12 items-start relative pb-24">
+      <div className="flex flex-col lg:flex-row gap-12 items-start relative">
         
         {/* LEFT COLUMN: Sticky Image Preview (50% Width) */}
-        <div className="w-full lg:w-1/2 lg:sticky lg:top-32 flex flex-col gap-6">
+        <div className="w-full lg:w-5/12 lg:sticky lg:top-24 flex flex-col gap-6">
           
-          <div className="rounded-[2.5rem] p-3 border border-white/10 bg-white/5 backdrop-blur-2xl shadow-2xl relative overflow-hidden group">
+          <div className="rounded-[2rem] p-2 border border-white/[0.06] bg-white/[0.02] backdrop-blur-2xl shadow-xl relative overflow-hidden group">
             {/* Ambient Background Glow matching state */}
             <div 
-              className={`absolute -top-12 -right-12 w-64 h-64 rounded-full blur-[80px] pointer-events-none opacity-20 transition-all duration-1000 ${
-                trustLevel === "VERIFIED" ? "bg-success" : trustLevel === "PARTIAL" ? "bg-warning" : "bg-error"
-              }`}
+              className="absolute -top-12 -right-12 w-48 h-48 rounded-full blur-[64px] pointer-events-none opacity-20 transition-all duration-1000"
+              style={{ backgroundColor: trustStyle.glowColor }}
             />
             
-            <div className="aspect-[4/3] rounded-[2rem] overflow-hidden bg-black/50 relative">
+            <div className="aspect-[4/3] rounded-[1.75rem] overflow-hidden bg-black/45 relative">
               {activeManifest?.thumbnailBase64 ? (
                 <img 
                   src={activeManifest.thumbnailBase64} 
                   alt="Embedded Provenance"
-                  className="w-full h-full object-contain bg-black/20"
+                  className="w-full h-full object-contain bg-black/10 transition-transform duration-500 group-hover:scale-[1.015]"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col justify-center items-center text-foreground/45 gap-4">
-                  <ShieldX className="w-16 h-16 stroke-[1] text-white/20" />
-                  <span className="text-sm font-medium">No embedded C2PA thumbnail available</span>
+                <div className="w-full h-full flex flex-col justify-center items-center text-white/30 gap-3">
+                  <ShieldX className="w-12 h-12 stroke-[1.2] text-white/10" />
+                  <span className="text-xs font-medium uppercase tracking-wider">No Embedded Thumbnail</span>
                 </div>
               )}
             </div>
-            
-            <div className="absolute top-8 left-8">
-              <div className={`px-4 py-1.5 rounded-full backdrop-blur-md border border-white/20 font-semibold text-xs tracking-wider uppercase text-white shadow-lg ${trustBadge.colorClass}`}>
-                {activeManifest?.format?.split("/")[1] || "JPEG"} • {trustLevel}
-              </div>
-            </div>
           </div>
 
-          <div className={`rounded-3xl p-6 border flex flex-col gap-2 ${trustBadge.colorClass} backdrop-blur-md`}>
-            <div className="flex items-center gap-3">
-              {trustBadge.icon}
-              <h3 className="text-xl font-bold tracking-tight text-white">{trustBadge.text}</h3>
+          {/* Minimalist Trust Status Card */}
+          <div className={`rounded-2xl p-5 border border-white/[0.04] border-l-3 ${trustStyle.borderColor} bg-white/[0.01] backdrop-blur-xl shadow-lg flex flex-col gap-2 relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 w-24 h-24 blur-[40px] pointer-events-none rounded-full" style={{ backgroundColor: trustStyle.glowColor, opacity: 0.12 }} />
+            <div className="flex items-center gap-2.5">
+              {trustStyle.icon}
+              <span className={`text-xs font-bold uppercase tracking-wider ${trustStyle.textColor}`}>{trustStyle.title}</span>
             </div>
-            <p className="text-sm leading-relaxed text-white/75 mt-2 pl-11">
+            <p className="text-sm leading-relaxed text-white/70 mt-1 pl-7">
               {trustReason}
             </p>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Scrolling Details & Inspector (50% Width) */}
-        <div className="w-full lg:w-1/2 flex flex-col gap-10">
+        {/* RIGHT COLUMN: Scrolling Details & Inspector (7/12 Width) */}
+        <div className="w-full lg:w-7/12 flex flex-col gap-10">
           
           {/* Top Info Block */}
           <div className="flex flex-col gap-4">
-            <h4 className="text-[10px] uppercase tracking-widest font-bold text-accent">Verified Origin</h4>
-            <h2 className="text-5xl lg:text-6xl font-bold text-white tracking-tighter leading-[1.1]">
-              {getOriginName()}
+            <span className="text-[10px] uppercase tracking-widest font-extrabold text-indigo-400">Provenance Verified</span>
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+              <span className="bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">{getOriginName()}</span>
             </h2>
-            <p className="text-lg font-light text-foreground/60 leading-relaxed max-w-lg mt-2">
+            <p className="text-base font-light text-white/60 leading-relaxed max-w-xl mt-2">
               {activeManifest?.isAiGenerated
                 ? `This asset is cryptographically verified to have been synthesized using ${getOriginName()} Content Credentials.`
                 : activeManifest
@@ -176,51 +182,57 @@ export const Dashboard: React.FC = () => {
             </p>
             
             {activeManifest && (
-              <div className="flex flex-wrap items-center gap-4 mt-4">
-                <div className="flex items-center gap-2 text-sm text-white/70 bg-white/5 border border-white/10 rounded-full px-4 py-1.5">
-                  <Calendar className="w-4 h-4" />
+              <div className="flex flex-wrap items-center gap-3 mt-3">
+                <div className="flex items-center gap-2 text-xs text-white/70 bg-white/[0.02] border border-white/[0.06] rounded-full px-3.5 py-1.5 font-medium">
+                  <Calendar className="w-3.5 h-3.5 text-white/40" />
                   <span>{activeManifest.signature?.time ? new Date(activeManifest.signature.time).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : "Unknown Date"}</span>
                 </div>
                 {activeManifest.isAiGenerated && (
-                  <div className="flex items-center gap-2 text-sm text-accent bg-accent/10 border border-accent/20 rounded-full px-4 py-1.5">
-                    <Cpu className="w-4 h-4" />
-                    <span className="font-semibold">AI Generated Content</span>
+                  <div className="flex items-center gap-2 text-xs text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-3.5 py-1.5 font-medium">
+                    <Cpu className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>AI Generated</span>
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          <div className="w-full h-px bg-gradient-to-r from-card-border to-transparent" />
+          <div className="w-full h-px bg-gradient-to-r from-white/[0.06] to-transparent" />
 
           {/* Timeline Section */}
           <div className="flex flex-col gap-6">
-            <h3 className="text-xl font-bold text-white flex items-center gap-3 tracking-tight">
-              <History className="w-5 h-5 text-accent" />
+            <h3 className="text-lg font-bold text-white flex items-center gap-2.5 tracking-tight">
+              <History className="w-4.5 h-4.5 text-indigo-400" />
               Provenance Timeline
             </h3>
             
             {activeManifest?.history && activeManifest.history.length > 0 ? (
-              <div className="pl-4">
-                <div className="relative border-l-2 border-white/10 ml-2 pl-8 space-y-8 py-2">
+              <div className="pl-2">
+                <div className="relative border-l border-white/[0.08] ml-2.5 pl-6 space-y-6 py-1">
                   {activeManifest.history.map((item: any, index: number) => {
                     const isCreation = item.action.includes("created");
                     return (
                       <div key={index} className="relative group">
-                        <div className={`absolute -left-[42px] top-1 w-5 h-5 rounded-full border bg-background flex justify-center items-center z-10 ${
-                          isCreation ? "border-accent shadow-[0_0_20px_rgba(99,102,241,0.8)] glow-border" : "border-white/20"
-                        }`}>
-                          {isCreation ? <div className="w-2 h-2 rounded-full bg-accent animate-pulse" /> : <div className="w-1.5 h-1.5 rounded-full bg-white/30" />}
+                        <div className="absolute -left-[30px] top-1.5 z-10">
+                          {isCreation ? (
+                            <div className="w-4 h-4 rounded-full border border-indigo-500/40 bg-indigo-950 flex items-center justify-center">
+                              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                            </div>
+                          ) : (
+                            <div className="w-3 h-3 rounded-full border border-white/20 bg-neutral-900 flex items-center justify-center ml-0.5 mt-0.5">
+                              <span className="w-1 h-1 rounded-full bg-white/40" />
+                            </div>
+                          )}
                         </div>
                         <div className="flex flex-col">
-                          <div className="flex items-center justify-between">
-                            <span className={`text-base font-semibold tracking-tight ${isCreation ? "text-white text-lg" : "text-white/80"}`}>{item.display}</span>
-                            {item.timestamp && <span className="text-xs font-mono text-white/40 bg-white/5 px-2 py-1 rounded-md">{new Date(item.timestamp).toLocaleDateString()}</span>}
+                          <div className="flex items-center justify-between gap-4">
+                            <span className={`text-sm font-semibold tracking-tight ${isCreation ? "text-white text-base" : "text-white/80"}`}>{item.display}</span>
+                            {item.timestamp && <span className="text-[10px] font-mono text-white/40 bg-white/[0.02] border border-white/[0.05] px-2 py-0.5 rounded">{new Date(item.timestamp).toLocaleDateString()}</span>}
                           </div>
-                          <p className="text-sm text-white/60 mt-1.5 leading-relaxed">{item.description}</p>
+                          <p className="text-xs text-white/50 mt-1 leading-relaxed">{item.description}</p>
                           {item.software && (
-                            <div className="mt-3 text-xs font-medium text-accent border border-accent/20 rounded-lg px-3 py-1.5 w-fit bg-accent/5">
-                              Created via {item.software}
+                            <div className="mt-2 text-[10px] font-semibold text-indigo-300 border border-indigo-500/10 rounded px-2 py-0.5 w-fit bg-indigo-500/[0.03] uppercase tracking-wider">
+                              {item.software}
                             </div>
                           )}
                         </div>
@@ -230,65 +242,65 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="text-sm text-white/40 italic">No editing action history claims available.</div>
+              <div className="text-xs text-white/30 italic ml-7">No editing action history claims available.</div>
             )}
           </div>
 
           {/* Deep Forensic Analysis Section */}
           {forensic && forensic.signals && forensic.signals.length > 0 && (
-            <div className="flex flex-col gap-6 mt-4 border-t border-white/10 pt-10">
+            <div className="flex flex-col gap-6 mt-2 border-t border-white/[0.04] pt-8">
               <div className="flex flex-col gap-1">
-                <h3 className="text-xl font-bold text-white flex items-center gap-3 tracking-tight">
-                  <Eye className="w-5 h-5 text-indigo-400" />
+                <h3 className="text-lg font-bold text-white flex items-center gap-2.5 tracking-tight">
+                  <Eye className="w-4.5 h-4.5 text-indigo-400" />
                   Deep Forensic Analysis
                 </h3>
-                <p className="text-sm text-white/40 ml-8">Metadata extracted directly from EXIF, XMP, IPTC, and raw binary layers.</p>
+                <p className="text-xs text-white/40 ml-7">Metadata extracted directly from EXIF, XMP, IPTC, and raw binary layers.</p>
               </div>
               
-              <div className="p-6 rounded-3xl border border-indigo-500/20 bg-indigo-500/[0.03] flex flex-col gap-5 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[50px] pointer-events-none" />
-                <div className="flex items-center gap-4">
-                  <div className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.1em] border ${
+              <div className="p-5 rounded-2xl border border-indigo-500/10 bg-indigo-500/[0.01] flex flex-col gap-4 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 blur-[40px] pointer-events-none" />
+                <div className="flex items-center gap-3">
+                  <div className={`px-2.5 py-1 rounded text-[9px] font-bold uppercase tracking-wider border ${
                     forensic.classification.includes("AI") ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/20" : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
                   }`}>
                     {forensic.classification.replace("_", " ")}
                   </div>
-                  <span className="text-sm font-semibold text-white/70">Confidence Level: <span className="text-white">{forensic.confidence}%</span></span>
+                  <span className="text-xs font-semibold text-white/60">Confidence Level: <span className="text-white">{forensic.confidence}%</span></span>
                 </div>
-                <p className="text-base text-white/80 leading-relaxed font-light">{forensic.summary}</p>
+                <p className="text-sm text-white/70 leading-relaxed font-light">{forensic.summary}</p>
                 
                 {forensic.possiblyStripped && (
-                  <div className="mt-1 p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-start gap-4">
-                    <ShieldAlert className="w-6 h-6 text-orange-400 shrink-0 mt-0.5" />
-                    <div className="flex flex-col gap-1">
-                      <strong className="text-sm text-orange-300">Badge Stripping Detected</strong>
-                      <p className="text-xs text-orange-200/70 leading-relaxed">
-                        Post-processing tools (like Photoshop or Lightroom) were used after AI generation. C2PA provenance credentials may have been intentionally or accidentally removed during saving.
+                  <div className="mt-1 p-3.5 rounded-xl bg-amber-500/[0.02] border border-amber-500/10 flex items-start gap-3">
+                    <ShieldAlert className="w-4.5 h-4.5 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="flex flex-col gap-0.5">
+                      <strong className="text-xs text-amber-300 font-semibold uppercase tracking-wider">Badge Stripping Detected</strong>
+                      <p className="text-[11px] text-white/50 leading-relaxed mt-0.5">
+                        Post-processing tools were detected. C2PA provenance credentials may have been removed or modified during export.
                       </p>
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
                 {forensic.signals.map((signal: any, idx: number) => (
-                  <div key={idx} className="group flex flex-col sm:flex-row gap-5 p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all hover:border-white/10">
+                  <div key={idx} className="group flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-white/[0.03] bg-white/[0.01] hover:bg-white/[0.02] transition-all hover:border-white/[0.06]">
                     <div className="shrink-0 pt-0.5">
-                      <div className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border ${
-                        signal.confidence === "HIGH" ? "bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.15)]" : 
-                        signal.confidence === "MEDIUM" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.15)]" : 
+                      <div className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${
+                        signal.confidence === "HIGH" ? "bg-red-500/10 text-red-400 border-red-500/20" : 
+                        signal.confidence === "MEDIUM" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : 
                         "bg-white/5 text-white/40 border-white/10"
                       }`}>
                         {signal.confidence} SIGNAL
                       </div>
                     </div>
-                    <div className="flex flex-col gap-2 w-full">
+                    <div className="flex flex-col gap-1 w-full">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-mono font-medium text-accent/70 bg-accent/10 px-2 py-0.5 rounded uppercase tracking-wider">{signal.source}</span>
-                        <span className="text-[11px] font-mono text-white/30 truncate">{signal.field}</span>
+                        <span className="text-[9px] font-bold font-mono text-indigo-400/80 bg-indigo-500/5 px-2 py-0.5 rounded uppercase tracking-wider">{signal.source}</span>
+                        <span className="text-[10px] font-mono text-white/30 truncate">{signal.field}</span>
                       </div>
-                      <span className="text-base font-semibold text-white tracking-tight leading-snug">{signal.value}</span>
-                      <p className="text-sm text-white/50 leading-relaxed font-light">{signal.meaning}</p>
+                      <span className="text-sm font-semibold text-white tracking-tight mt-1">{signal.value}</span>
+                      <p className="text-xs text-white/50 leading-relaxed font-light">{signal.meaning}</p>
                     </div>
                   </div>
                 ))}
@@ -299,26 +311,27 @@ export const Dashboard: React.FC = () => {
           {/* Cryptographic Inspector (Sleek Accordions) */}
           {activeManifest?.assertions && activeManifest.assertions.length > 0 && (
             <div className="flex flex-col gap-6">
-              <h3 className="text-xl font-bold text-white flex items-center gap-3 tracking-tight">
-                <Award className="w-5 h-5 text-accent" />
+              <h3 className="text-lg font-bold text-white flex items-center gap-2.5 tracking-tight">
+                <Award className="w-4.5 h-4.5 text-indigo-400" />
                 Cryptographic Assertions
               </h3>
               
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2.5">
                 {activeManifest.assertions.map((assertion: any, index: number) => {
                   const isExpanded = expandedAssertion === assertion.label;
+                  const jsonStr = JSON.stringify(assertion.data, null, 2);
                   return (
-                    <div key={index} className="border border-white/10 rounded-2xl bg-white/[0.02] overflow-hidden transition-all hover:border-white/20">
+                    <div key={index} className="border border-white/[0.04] rounded-xl bg-white/[0.01] overflow-hidden transition-all hover:border-white/[0.08]">
                       <button
                         onClick={() => toggleAssertion(assertion.label)}
-                        className="w-full flex justify-between items-center p-4 text-left"
+                        className="w-full flex justify-between items-center p-3.5 text-left cursor-pointer"
                       >
-                        <div className="flex items-center gap-3">
-                          <Code className="w-4 h-4 text-white/40" />
-                          <span className="font-semibold text-sm text-white">{assertion.title}</span>
-                          <span className="text-[10px] font-mono text-white/30 hidden sm:inline">{assertion.label}</span>
+                        <div className="flex items-center gap-2.5">
+                          <Code className="w-4 h-4 text-white/35" />
+                          <span className="font-semibold text-xs text-white uppercase tracking-wider">{assertion.title}</span>
+                          <span className="text-[9px] font-mono text-white/30 hidden sm:inline">{assertion.label}</span>
                         </div>
-                        {isExpanded ? <ChevronDown className="w-4 h-4 text-white/50" /> : <ChevronRight className="w-4 h-4 text-white/50" />}
+                        {isExpanded ? <ChevronDown className="w-3.5 h-3.5 text-white/40" /> : <ChevronRight className="w-3.5 h-3.5 text-white/40" />}
                       </button>
                       <AnimatePresence>
                         {isExpanded && (
@@ -326,10 +339,17 @@ export const Dashboard: React.FC = () => {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="border-t border-white/5 bg-black/30 overflow-hidden"
+                            className="border-t border-white/[0.04] bg-black/20 overflow-hidden relative"
                           >
-                            <pre className="p-5 text-xs font-mono text-white/60 leading-relaxed overflow-x-auto">
-                              {JSON.stringify(assertion.data, null, 2)}
+                            <button
+                              onClick={() => handleCopyText(jsonStr, assertion.label)}
+                              className="absolute top-3 right-3 text-white/40 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] p-1.5 rounded-lg transition-colors cursor-pointer"
+                              title="Copy Assertion JSON"
+                            >
+                              {copiedAssertion === assertion.label ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            </button>
+                            <pre className="p-4 text-[11px] font-mono text-white/60 leading-relaxed overflow-x-auto max-h-[300px]">
+                              {jsonStr}
                             </pre>
                           </motion.div>
                         )}
@@ -342,19 +362,19 @@ export const Dashboard: React.FC = () => {
           )}
 
           {/* Raw Explorer */}
-          <div className="flex flex-col gap-6 border border-white/10 bg-white/[0.02] rounded-3xl p-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
-              <h3 className="text-lg font-bold text-white flex items-center gap-3 tracking-tight">
-                <FileJson className="w-5 h-5 text-accent" />
-                Raw Manifest Data
+          <div className="flex flex-col gap-6 border border-white/[0.04] bg-white/[0.01] rounded-2xl p-5">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h3 className="text-sm font-semibold text-white flex items-center gap-2.5 tracking-wider uppercase">
+                <FileJson className="w-4 h-4 text-indigo-400" />
+                Raw Metadata Explorer
               </h3>
-              <div className="flex gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
+              <div className="flex gap-0.5 bg-black/35 p-0.5 rounded-lg border border-white/[0.04]">
                 {(["visual", "json", "cert"] as ExplorerTab[]).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`text-xs font-semibold px-4 py-1.5 rounded-lg uppercase tracking-wider transition-all ${
-                      activeTab === tab ? "bg-white text-black shadow-md" : "text-white/40 hover:text-white/80"
+                    className={`text-[9px] font-bold px-3 py-1.5 rounded-md uppercase tracking-wider transition-all cursor-pointer ${
+                      activeTab === tab ? "bg-white text-black shadow" : "text-white/40 hover:text-white/80"
                     }`}
                   >
                     {tab}
@@ -363,26 +383,26 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="min-h-[250px]">
+            <div className="min-h-[200px]">
               {activeTab === "visual" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-white/60">
-                  <div className="p-4 rounded-2xl bg-black/20 border border-white/5">
-                    <div className="text-[10px] uppercase tracking-widest font-bold text-white/30 mb-1">Claim Generator</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-white/60">
+                  <div className="p-3.5 rounded-xl bg-black/15 border border-white/[0.03]">
+                    <div className="text-[9px] uppercase tracking-widest font-semibold text-white/30 mb-0.5">Claim Generator</div>
                     <div className="font-semibold text-white truncate">{activeManifest?.claimGenerator || "N/A"}</div>
                   </div>
-                  <div className="p-4 rounded-2xl bg-black/20 border border-white/5">
-                    <div className="text-[10px] uppercase tracking-widest font-bold text-white/30 mb-1">Manifest Label</div>
-                    <div className="font-mono text-xs text-white truncate">{activeManifest?.label || "N/A"}</div>
+                  <div className="p-3.5 rounded-xl bg-black/15 border border-white/[0.03]">
+                    <div className="text-[9px] uppercase tracking-widest font-semibold text-white/30 mb-0.5">Manifest Label</div>
+                    <div className="font-mono text-[11px] text-white truncate">{activeManifest?.label || "N/A"}</div>
                   </div>
-                  <div className="p-4 rounded-2xl bg-black/20 border border-white/5">
-                    <div className="text-[10px] uppercase tracking-widest font-bold text-white/30 mb-1">Format</div>
+                  <div className="p-3.5 rounded-xl bg-black/15 border border-white/[0.03]">
+                    <div className="text-[9px] uppercase tracking-widest font-semibold text-white/30 mb-0.5">Mime Type Format</div>
                     <div className="font-semibold text-white uppercase">{activeManifest?.format || "N/A"}</div>
                   </div>
                 </div>
               )}
 
               {activeTab === "json" && (
-                <pre className="p-4 rounded-2xl border border-white/5 bg-black/40 text-xs font-mono text-white/50 leading-relaxed overflow-x-auto max-h-[400px]">
+                <pre className="p-3.5 rounded-xl border border-white/[0.03] bg-black/20 text-[11px] font-mono text-white/50 leading-relaxed overflow-x-auto max-h-[350px]">
                   {JSON.stringify(allManifests, null, 2)}
                 </pre>
               )}
@@ -390,33 +410,33 @@ export const Dashboard: React.FC = () => {
               {activeTab === "cert" && (
                 <div className="flex flex-col gap-4">
                   {activeManifest?.signature ? (
-                    <div className="border border-white/10 rounded-2xl bg-white/[0.01] overflow-hidden">
-                      <div className="p-4 border-b border-white/10 bg-black/40 flex justify-between items-center">
+                    <div className="cert-pass-border border border-white/[0.06] rounded-xl overflow-hidden shadow-lg bg-gradient-to-b from-white/[0.01] to-transparent">
+                      <div className="p-3.5 border-b border-white/[0.06] bg-black/20 flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                          <Lock className="w-4 h-4 text-success" />
-                          <span className="font-bold text-white text-sm">Signature Authority</span>
+                          <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="font-bold text-white text-[10px] uppercase tracking-wider">Signing Authority Certificate</span>
                         </div>
-                        <span className="text-xs font-mono py-1 px-3 bg-success/10 text-success rounded-lg font-bold">
+                        <span className="text-[9px] font-mono py-0.5 px-2 bg-emerald-500/10 text-emerald-300 rounded font-bold uppercase border border-emerald-500/20">
                           {activeManifest.signature.alg}
                         </span>
                       </div>
-                      <div className="p-5 space-y-4 text-xs font-medium">
-                        <div className="flex justify-between border-b border-white/5 pb-2">
-                          <span className="text-white/40">Issuer</span>
-                          <span className="text-white text-right">{activeManifest.signature.issuer || "N/A"}</span>
+                      <div className="p-4.5 space-y-3.5 text-xs">
+                        <div className="flex justify-between border-b border-white/[0.03] pb-2 gap-4">
+                          <span className="text-white/40">Issuer Common Name</span>
+                          <span className="text-white text-right font-medium">{activeManifest.signature.issuer || "N/A"}</span>
                         </div>
-                        <div className="flex justify-between border-b border-white/5 pb-2">
+                        <div className="flex justify-between border-b border-white/[0.03] pb-2 gap-4">
                           <span className="text-white/40">Common Name</span>
-                          <span className="text-white text-right">{activeManifest.signature.commonName || "N/A"}</span>
+                          <span className="text-white text-right font-medium">{activeManifest.signature.commonName || "N/A"}</span>
                         </div>
-                        <div className="flex justify-between border-b border-white/5 pb-2">
+                        <div className="flex justify-between border-b border-white/[0.03] pb-2 gap-4">
                           <span className="text-white/40">Serial Number</span>
-                          <span className="text-white/70 font-mono text-[10px] text-right truncate max-w-[200px]">{activeManifest.signature.serialNumber || "N/A"}</span>
+                          <span className="text-white/70 font-mono text-[10px] text-right truncate max-w-[220px]">{activeManifest.signature.serialNumber || "N/A"}</span>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-white/40">No Digital Signature</div>
+                    <div className="text-center py-8 text-white/30 text-xs italic">No Digital Signature Available</div>
                   )}
                 </div>
               )}

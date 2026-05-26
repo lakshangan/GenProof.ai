@@ -91,6 +91,9 @@ export default function Home() {
           <div className="bloom-br" />
         </div>
 
+        {/* Technical dot grid backdrop */}
+        <div className="grid-backdrop" aria-hidden="true" />
+
         {/* Film grain */}
         <div className="cinematic-noise" />
 

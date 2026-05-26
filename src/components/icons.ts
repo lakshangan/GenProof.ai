@@ -32,4 +32,5 @@ export const Award = Lucide.Award as any;
 export const ExternalLink = Lucide.ExternalLink as any;
 export const Settings = Lucide.Settings as any;
 export const Check = Lucide.Check as any;
+export const Copy = Lucide.Copy as any;
 export default Lucide;

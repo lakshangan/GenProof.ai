@@ -203,7 +203,7 @@ export const HeroAnimated: React.FC<HeroAnimatedProps> = ({
                   variants={itemVariants}
                   className={cn(
                     "block",
-                    isGradient && "glow-text bg-gradient-to-r from-indigo-300 via-indigo-400 to-violet-400 bg-clip-text text-transparent"
+                    isGradient && "glow-text bg-gradient-to-r from-indigo-200 via-indigo-300 to-sky-300 bg-clip-text text-transparent"
                   )}
                 >
                   {line}

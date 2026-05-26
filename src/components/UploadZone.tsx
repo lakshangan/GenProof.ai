@@ -105,38 +105,42 @@ export const UploadZone: React.FC = () => {
 
       {/* Drop Zone */}
       <motion.div
+        whileHover={{
+          borderColor: "rgba(255,255,255,0.08)",
+          backgroundColor: "rgba(255,255,255,0.02)",
+        }}
         animate={{
-          borderColor: isDragActive ? "rgba(99,102,241,0.8)" : "rgba(255,255,255,0.08)",
-          backgroundColor: isDragActive ? "rgba(99,102,241,0.06)" : "rgba(255,255,255,0.02)",
+          borderColor: isDragActive ? "rgba(99,102,241,0.6)" : "rgba(255,255,255,0.04)",
+          backgroundColor: isDragActive ? "rgba(99,102,241,0.03)" : "rgba(255,255,255,0.01)",
           scale: isDragActive ? 1.01 : 1,
         }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
         onDragEnter={handleDrag}
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative w-full rounded-3xl border border-dashed cursor-pointer group glow-pulse ${isDragActive ? "glow-border" : ""}`}
+        className={`relative w-full rounded-[28px] border border-solid cursor-pointer group glow-pulse transition-shadow duration-300 ${isDragActive ? "glow-border" : ""}`}
         style={{ minHeight: "260px" }}
       >
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 p-10">
           <motion.div
-            animate={{ scale: isDragActive ? 1.15 : 1 }}
-            transition={{ type: "spring", damping: 12 }}
-            className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${
+            animate={{ scale: isDragActive ? 1.1 : 1 }}
+            transition={{ type: "spring", damping: 14 }}
+            className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
               isDragActive
-                ? "bg-indigo-500/20 border border-indigo-400/30"
-                : "bg-white/5 border border-white/10 group-hover:bg-white/8 group-hover:border-white/20"
+                ? "bg-indigo-500/10 border border-indigo-400/20"
+                : "bg-white/[0.02] border border-white/[0.05] group-hover:bg-white/[0.04] group-hover:border-white/[0.1] shadow-inner"
             }`}
           >
-            <Upload className={`w-7 h-7 transition-colors ${isDragActive ? "text-indigo-400" : "text-white/40 group-hover:text-white/60"}`} />
+            <Upload className={`w-5 h-5 transition-colors ${isDragActive ? "text-indigo-400" : "text-white/30 group-hover:text-white/50"}`} />
           </motion.div>
 
           <div className="text-center">
-            <p className="text-white font-semibold text-base">
+            <p className="text-white/80 font-medium text-sm tracking-tight">
               {isDragActive ? "Release to verify" : "Drop your image here"}
             </p>
-            <p className="text-white/40 text-sm mt-1.5">
+            <p className="text-white/30 text-xs mt-1">
               or{" "}
               <span className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors">
                 click to browse
@@ -144,9 +148,9 @@ export const UploadZone: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap justify-center">
+          <div className="flex items-center gap-1.5 flex-wrap justify-center">
             {["JPEG", "PNG", "WebP", "HEIC"].map((fmt) => (
-              <span key={fmt} className="text-[10px] font-bold tracking-widest uppercase text-white/25 border border-white/8 rounded-full px-3 py-1">
+              <span key={fmt} className="text-[9px] font-semibold tracking-wider uppercase text-white/30 border border-white/[0.04] bg-white/[0.01] rounded-full px-2.5 py-0.5">
                 {fmt}
               </span>
             ))}
