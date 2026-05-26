@@ -12,6 +12,7 @@ export const Lock = Lucide.Lock as any;
 export const Upload = Lucide.Upload as any;
 export const FileImage = Lucide.FileImage as any;
 export const AlertCircle = Lucide.AlertCircle as any;
+export const Eye = Lucide.Eye as any;
 export const Loader2 = Lucide.Loader2 as any;
 export const CheckCircle2 = Lucide.CheckCircle2 as any;
 export const ArrowLeft = Lucide.ArrowLeft as any;

@@ -6,7 +6,7 @@ import {
   ArrowLeft, ShieldCheck, ShieldAlert, ShieldX, 
   History, Cpu, FileText, FileJson, Calendar, 
   Hash, Code, Download, RefreshCw, ChevronDown, 
-  ChevronRight, Award, Lock, ExternalLink
+  ChevronRight, Award, Lock, ExternalLink, Eye
 } from "@/components/icons";
 import useStore from "@/store/useStore";
 
@@ -30,7 +30,8 @@ export const Dashboard: React.FC = () => {
     validationStatus,
     validationState,
     allManifests,
-  } = activeAnalysis;
+    forensic,
+  } = activeAnalysis as any;
 
   const toggleAssertion = (label: string) => {
     setExpandedAssertion(expandedAssertion === label ? null : label);
@@ -201,25 +202,25 @@ export const Dashboard: React.FC = () => {
             
             {activeManifest?.history && activeManifest.history.length > 0 ? (
               <div className="pl-4">
-                <div className="relative border-l border-white/10 ml-2 pl-8 space-y-8 py-2">
-                  {activeManifest.history.map((item, index) => {
+                <div className="relative border-l-2 border-white/10 ml-2 pl-8 space-y-8 py-2">
+                  {activeManifest.history.map((item: any, index: number) => {
                     const isCreation = item.action.includes("created");
                     return (
                       <div key={index} className="relative group">
-                        <div className={`absolute -left-[41px] top-1 w-5 h-5 rounded-full border bg-background flex justify-center items-center ${
-                          isCreation ? "border-accent shadow-[0_0_15px_rgba(99,102,241,0.4)]" : "border-white/20"
+                        <div className={`absolute -left-[42px] top-1 w-5 h-5 rounded-full border bg-background flex justify-center items-center z-10 ${
+                          isCreation ? "border-accent shadow-[0_0_20px_rgba(99,102,241,0.8)] glow-border" : "border-white/20"
                         }`}>
-                          {isCreation ? <div className="w-2 h-2 rounded-full bg-accent" /> : <div className="w-1.5 h-1.5 rounded-full bg-white/30" />}
+                          {isCreation ? <div className="w-2 h-2 rounded-full bg-accent animate-pulse" /> : <div className="w-1.5 h-1.5 rounded-full bg-white/30" />}
                         </div>
                         <div className="flex flex-col">
                           <div className="flex items-center justify-between">
-                            <span className="text-base font-semibold text-white tracking-tight">{item.display}</span>
-                            {item.timestamp && <span className="text-xs font-mono text-white/40">{new Date(item.timestamp).toLocaleDateString()}</span>}
+                            <span className={`text-base font-semibold tracking-tight ${isCreation ? "text-white text-lg" : "text-white/80"}`}>{item.display}</span>
+                            {item.timestamp && <span className="text-xs font-mono text-white/40 bg-white/5 px-2 py-1 rounded-md">{new Date(item.timestamp).toLocaleDateString()}</span>}
                           </div>
-                          <p className="text-sm text-white/60 mt-1 leading-relaxed">{item.description}</p>
+                          <p className="text-sm text-white/60 mt-1.5 leading-relaxed">{item.description}</p>
                           {item.software && (
-                            <div className="mt-2 text-xs text-white/50 border border-white/10 rounded-lg px-2.5 py-1 w-fit bg-white/[0.02]">
-                              via {item.software}
+                            <div className="mt-3 text-xs font-medium text-accent border border-accent/20 rounded-lg px-3 py-1.5 w-fit bg-accent/5">
+                              Created via {item.software}
                             </div>
                           )}
                         </div>
@@ -233,6 +234,68 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
 
+          {/* Deep Forensic Analysis Section */}
+          {forensic && forensic.signals && forensic.signals.length > 0 && (
+            <div className="flex flex-col gap-6 mt-4 border-t border-white/10 pt-10">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-xl font-bold text-white flex items-center gap-3 tracking-tight">
+                  <Eye className="w-5 h-5 text-indigo-400" />
+                  Deep Forensic Analysis
+                </h3>
+                <p className="text-sm text-white/40 ml-8">Metadata extracted directly from EXIF, XMP, IPTC, and raw binary layers.</p>
+              </div>
+              
+              <div className="p-6 rounded-3xl border border-indigo-500/20 bg-indigo-500/[0.03] flex flex-col gap-5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[50px] pointer-events-none" />
+                <div className="flex items-center gap-4">
+                  <div className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.1em] border ${
+                    forensic.classification.includes("AI") ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/20" : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
+                  }`}>
+                    {forensic.classification.replace("_", " ")}
+                  </div>
+                  <span className="text-sm font-semibold text-white/70">Confidence Level: <span className="text-white">{forensic.confidence}%</span></span>
+                </div>
+                <p className="text-base text-white/80 leading-relaxed font-light">{forensic.summary}</p>
+                
+                {forensic.possiblyStripped && (
+                  <div className="mt-1 p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-start gap-4">
+                    <ShieldAlert className="w-6 h-6 text-orange-400 shrink-0 mt-0.5" />
+                    <div className="flex flex-col gap-1">
+                      <strong className="text-sm text-orange-300">Badge Stripping Detected</strong>
+                      <p className="text-xs text-orange-200/70 leading-relaxed">
+                        Post-processing tools (like Photoshop or Lightroom) were used after AI generation. C2PA provenance credentials may have been intentionally or accidentally removed during saving.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {forensic.signals.map((signal: any, idx: number) => (
+                  <div key={idx} className="group flex flex-col sm:flex-row gap-5 p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all hover:border-white/10">
+                    <div className="shrink-0 pt-0.5">
+                      <div className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border ${
+                        signal.confidence === "HIGH" ? "bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.15)]" : 
+                        signal.confidence === "MEDIUM" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.15)]" : 
+                        "bg-white/5 text-white/40 border-white/10"
+                      }`}>
+                        {signal.confidence} SIGNAL
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 w-full">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-mono font-medium text-accent/70 bg-accent/10 px-2 py-0.5 rounded uppercase tracking-wider">{signal.source}</span>
+                        <span className="text-[11px] font-mono text-white/30 truncate">{signal.field}</span>
+                      </div>
+                      <span className="text-base font-semibold text-white tracking-tight leading-snug">{signal.value}</span>
+                      <p className="text-sm text-white/50 leading-relaxed font-light">{signal.meaning}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Cryptographic Inspector (Sleek Accordions) */}
           {activeManifest?.assertions && activeManifest.assertions.length > 0 && (
             <div className="flex flex-col gap-6">
@@ -242,7 +305,7 @@ export const Dashboard: React.FC = () => {
               </h3>
               
               <div className="flex flex-col gap-3">
-                {activeManifest.assertions.map((assertion, index) => {
+                {activeManifest.assertions.map((assertion: any, index: number) => {
                   const isExpanded = expandedAssertion === assertion.label;
                   return (
                     <div key={index} className="border border-white/10 rounded-2xl bg-white/[0.02] overflow-hidden transition-all hover:border-white/20">
