@@ -234,7 +234,19 @@ export async function transformC2paResult(reader: any): Promise<ProvenanceReport
   }
 
   // 3. Build Friendly Claims
-  const genDetails = getFriendlyGenerator(activeManifest.claim_generator || "");
+  let rawGenerator = activeManifest.claim_generator || "";
+  
+  // Modern C2PA assets often use claim_generator_info array
+  if (!rawGenerator && activeManifest.claim_generator_info && activeManifest.claim_generator_info.length > 0) {
+    rawGenerator = activeManifest.claim_generator_info.map((info: any) => info.name).join(", ");
+  }
+
+  // Fallback to signature common name if still empty
+  if (!rawGenerator && activeManifest.signature_info && activeManifest.signature_info.common_name) {
+    rawGenerator = activeManifest.signature_info.common_name;
+  }
+
+  const genDetails = getFriendlyGenerator(rawGenerator);
   
   // Try to find if AI training restriction is defined
   let hasAiTrainingRestriction = false;
@@ -264,7 +276,7 @@ export async function transformC2paResult(reader: any): Promise<ProvenanceReport
         description: `Modified using action ${actionKey}.`,
       };
 
-      let software = act.software || activeManifest.claim_generator;
+      let software = act.software || rawGenerator;
       if (software) {
         software = getFriendlyGenerator(software).display;
       }
@@ -298,7 +310,7 @@ export async function transformC2paResult(reader: any): Promise<ProvenanceReport
     label: activeManifest.label,
     title: activeManifest.title || "Untitled Asset",
     format: activeManifest.format || "image/jpeg",
-    claimGenerator: activeManifest.claim_generator,
+    claimGenerator: rawGenerator,
     claimGeneratorDisplay,
     isAiGenerated: genDetails.isAi,
     aiGeneratorTool: genDetails.tool,
