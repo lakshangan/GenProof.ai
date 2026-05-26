@@ -1,0 +1,333 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────
+   APPLE SYSTEM FONT STACK
+   Uses SF Pro on Apple devices, Segoe UI on Windows,
+   falls back to system-ui everywhere else.
+   ────────────────────────────────────────────── */
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, "Cascadia Code", "Fira Code",
+    "Menlo", "Consolas", monospace;
+
+  --background: #080810;
+  --foreground: #e2e8f0;
+  --card-bg: rgba(10, 16, 32, 0.4);
+  --card-border: rgba(255, 255, 255, 0.07);
+  --accent: #6366f1;
+  --accent-glow: rgba(99, 102, 241, 0.12);
+  --success: #34d399;
+  --success-light: rgba(52, 211, 153, 0.12);
+  --warning: #fbbf24;
+  --warning-light: rgba(251, 191, 36, 0.12);
+  --error: #f87171;
+  --error-light: rgba(248, 113, 113, 0.12);
+  --neutral-muted: rgba(255, 255, 255, 0.4);
+}
+
+.light-theme {
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(0, 0, 0, 0.06);
+  --accent: #4f46e5;
+  --accent-glow: rgba(79, 70, 229, 0.08);
+  --success: #059669;
+  --success-light: rgba(5, 150, 105, 0.08);
+  --warning: #d97706;
+  --warning-light: rgba(217, 119, 6, 0.08);
+  --error: #dc2626;
+  --error-light: rgba(220, 38, 38, 0.08);
+  --neutral-muted: rgba(0, 0, 0, 0.5);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-glow);
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-error: var(--error);
+  --color-error-light: var(--error-light);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* ──────────────────────────────────────────────
+   BASE
+   ────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* ──────────────────────────────────────────────
+   SCROLLBAR
+   ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+/* ──────────────────────────────────────────────
+   SLOW ANIMATED GRADIENT BACKGROUND
+   Strong, visible, cinematic bloom orbs.
+   ────────────────────────────────────────────── */
+.gradient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: #07070f;
+}
+
+/* Top bloom — large vivid orb, slow hue shift */
+.gradient-bg .bloom-top {
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160%;
+  height: 90%;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.55;
+  animation: bloom-top-shift 16s ease-in-out infinite;
+}
+
+@keyframes bloom-top-shift {
+  0%   { background: radial-gradient(ellipse, #4f46e5 0%, #7c3aed 40%, transparent 70%); }
+  25%  { background: radial-gradient(ellipse, #7c3aed 0%, #2563eb 40%, transparent 70%); }
+  50%  { background: radial-gradient(ellipse, #2563eb 0%, #4f46e5 40%, transparent 70%); }
+  75%  { background: radial-gradient(ellipse, #6d28d9 0%, #4f46e5 40%, transparent 70%); }
+  100% { background: radial-gradient(ellipse, #4f46e5 0%, #7c3aed 40%, transparent 70%); }
+}
+
+/* Bottom-left bloom */
+.gradient-bg .bloom-bl {
+  position: absolute;
+  bottom: -15%;
+  left: -10%;
+  width: 65%;
+  height: 65%;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  animation: bloom-bl-shift 20s ease-in-out infinite reverse;
+}
+
+@keyframes bloom-bl-shift {
+  0%   { background: radial-gradient(ellipse, #7c3aed 0%, transparent 65%); }
+  33%  { background: radial-gradient(ellipse, #4338ca 0%, transparent 65%); }
+  66%  { background: radial-gradient(ellipse, #8b5cf6 0%, transparent 65%); }
+  100% { background: radial-gradient(ellipse, #7c3aed 0%, transparent 65%); }
+}
+
+/* Bottom-right bloom */
+.gradient-bg .bloom-br {
+  position: absolute;
+  bottom: -10%;
+  right: -10%;
+  width: 55%;
+  height: 55%;
+  border-radius: 50%;
+  filter: blur(75px);
+  opacity: 0.3;
+  animation: bloom-br-shift 24s ease-in-out infinite;
+}
+
+@keyframes bloom-br-shift {
+  0%   { background: radial-gradient(ellipse, #1d4ed8 0%, transparent 65%); }
+  50%  { background: radial-gradient(ellipse, #4f46e5 0%, transparent 65%); }
+  100% { background: radial-gradient(ellipse, #1d4ed8 0%, transparent 65%); }
+}
+
+/* ──────────────────────────────────────────────
+   GLOW UTILITY CLASSES
+   Apply these to UI elements for the glow effect.
+   ────────────────────────────────────────────── */
+
+/* Glowing border + shadow on any element */
+.glow-border {
+  box-shadow:
+    0 0 0 1px rgba(99, 102, 241, 0.25),
+    0 0 20px rgba(99, 102, 241, 0.15),
+    0 0 60px rgba(99, 102, 241, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+/* Animated glow pulse for the upload zone */
+.glow-pulse {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(99, 102, 241, 0.15),
+      0 0 30px rgba(99, 102, 241, 0.08),
+      0 8px 40px rgba(0,0,0,0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(139, 92, 246, 0.3),
+      0 0 50px rgba(139, 92, 246, 0.14),
+      0 8px 40px rgba(0,0,0,0.4);
+  }
+}
+
+/* Logo badge glow */
+.glow-logo {
+  box-shadow:
+    0 0 12px rgba(99, 102, 241, 0.6),
+    0 0 28px rgba(99, 102, 241, 0.3);
+}
+
+/* Accent text glow */
+.glow-text {
+  text-shadow: 0 0 24px rgba(165, 180, 252, 0.5);
+}
+
+/* Active dot glow */
+.glow-dot {
+  box-shadow: 0 0 6px 2px rgba(52, 211, 153, 0.6);
+}
+
+/* ──────────────────────────────────────────────
+   GLASSMORPHISM PANELS
+   ────────────────────────────────────────────── */
+.glass-panel {
+  background: var(--card-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 1px 1px rgba(0,0,0,0.2), 0 8px 32px rgba(0,0,0,0.3);
+}
+
+/* ──────────────────────────────────────────────
+   SUBTLE NOISE OVERLAY  (no AI-grid)
+   ────────────────────────────────────────────── */
+.cinematic-noise {
+  position: fixed;
+  inset: 0;
+  opacity: 0.018;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* ──────────────────────────────────────────────
+   PILL BADGES
+   ────────────────────────────────────────────── */
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 13px;
+  border-radius: 9999px;
+  border: 1px solid var(--card-border);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.pill-badge .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+/* ──────────────────────────────────────────────
+   AMBIENT GLOW (kept for compatibility)
+   ────────────────────────────────────────────── */
+.ambient-glow-blue {
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ──────────────────────────────────────────────
+   SCAN LINE
+   ────────────────────────────────────────────── */
+.scan-line {
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: scan 3s infinite ease-in-out;
+}
+
+@keyframes scan {
+  0%   { top: 0%; }
+  50%  { top: 100%; }
+  100% { top: 0%; }
+}
+
+/* ──────────────────────────────────────────────
+   BUTTON STYLES
+   ────────────────────────────────────────────── */
+.lunetra-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  backdrop-filter: blur(10px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.lunetra-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.lunetra-btn-primary {
+  background: var(--accent);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.3);
+}
+
+.lunetra-btn-primary:hover {
+  background: #5254f0;
+  box-shadow: 0 0 32px rgba(99, 102, 241, 0.45);
+}
