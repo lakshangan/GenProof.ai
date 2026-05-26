@@ -9,6 +9,7 @@ import UploadZone from "@/components/UploadZone";
 import ScanningSequence from "@/components/ScanningSequence";
 import Dashboard from "@/components/Dashboard";
 import C2PACompare from "@/components/C2PACompare";
+import HeroAnimated from "@/components/ui/hero-animated";
 
 import "lenis/dist/lenis.css";
 
@@ -150,29 +151,11 @@ export default function Home() {
               >
                 {/* Hero */}
                 {!isAnalyzing && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05, duration: 0.5 }}
-                    className="text-center flex flex-col items-center gap-5 max-w-2xl px-4"
-                  >
-                    {/* Status badge */}
-                    <div className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] px-4 py-1.5 rounded-full border border-white/8 bg-white/[0.03] text-white/35">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      C2PA Verification Active
-                    </div>
-
-                    <h1 className="text-5xl sm:text-[4.5rem] font-semibold tracking-tight text-white leading-[1.04]" style={{ letterSpacing: "-0.03em" }}>
-                      Where did this
-                      <span className="block glow-text" style={{ background: "linear-gradient(135deg, #a5b4fc, #818cf8, #c4b5fd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                        image come from?
-                      </span>
-                    </h1>
-
-                    <p className="text-[15px] text-white/38 leading-relaxed max-w-[420px]" style={{ fontWeight: 400 }}>
-                      Upload any image. We scan every byte — EXIF, XMP, IPTC, and C2PA cryptographic signatures — to tell you exactly what created it.
-                    </p>
-                  </motion.div>
+                  <HeroAnimated
+                    titleLines={["Where did this", "image come from?"]}
+                    description="Upload any image. We scan every byte — EXIF, XMP, IPTC, and C2PA cryptographic signatures — to tell you exactly what created it."
+                    direction="bottom"
+                  />
                 )}
 
                 {/* Upload Zone */}
