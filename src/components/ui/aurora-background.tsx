@@ -29,6 +29,11 @@ const AuroraBackground: React.FC<AuroraBackgroundProps> = ({
   ariaLabel = "Animated aurora background",
 }) => {
   const [colorA, colorB] = gradientColors
+  const [isMounted, setIsMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   return (
     <div
@@ -103,7 +108,7 @@ const AuroraBackground: React.FC<AuroraBackgroundProps> = ({
         </motion.div>
 
         {/* Twinkling stars */}
-        {Array.from({ length: starCount }).map((_, i) => (
+        {isMounted && Array.from({ length: starCount }).map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-0.5 h-0.5 bg-white rounded-full"
