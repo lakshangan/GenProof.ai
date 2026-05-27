@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft, ShieldCheck, ShieldAlert, ShieldX, 
@@ -9,6 +9,7 @@ import {
   ChevronRight, Award, Lock, ExternalLink, Eye, Copy, Check, Info
 } from "@/components/CustomIcons";
 import useStore from "@/store/useStore";
+import { buildPdfReportHtml } from "@/lib/reportBuilder";
 
 type TechnicalTab = "timeline" | "forensics" | "signatures" | "assertions";
 
@@ -21,6 +22,18 @@ export const Dashboard: React.FC = () => {
   const [expandedAssertion, setExpandedAssertion] = useState<string | null>(null);
   const [copiedAssertion, setCopiedAssertion] = useState<string | null>(null);
   const [copiedJson, setCopiedJson] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
 
   if (!activeAnalysis) return null;
 
@@ -49,14 +62,44 @@ export const Dashboard: React.FC = () => {
     setTimeout(() => setCopiedJson(false), 2000);
   };
 
-  const downloadReport = () => {
+  const downloadPdfReport = () => {
+    setShowExportMenu(false);
+    const reportDate = new Date().toLocaleString(undefined, { dateStyle: "long", timeStyle: "short" });
+    const html = buildPdfReportHtml({
+      title: activeManifest?.title || "Unknown Asset",
+      trustLevel,
+      trustTitle: getTrustStatusStyles().title,
+      trustReason,
+      isAiGenerated: !!activeManifest?.isAiGenerated,
+      origin: getOriginName(),
+      signatureTime: activeManifest?.signature?.time
+        ? new Date(activeManifest.signature.time).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+        : "Not recorded",
+      format: (activeManifest?.format?.split("/")[1] || "JPEG").toUpperCase(),
+      dimensions: getDimensions(),
+      editingSoftware: getEditingSoftware(),
+      aiTraining: getAiTrainingRestriction(),
+      thumbnailBase64: activeManifest?.thumbnailBase64,
+      confidence: forensic?.confidence,
+      history: activeManifest?.history || [],
+      signals: forensic?.signals || [],
+      signature: activeManifest?.signature,
+      cameraInfo: getCameraInfo(),
+      reportDate,
+    });
+    const win = window.open("", "_blank");
+    if (win) { win.document.write(html); win.document.close(); }
+  };
+
+  const downloadJsonReport = () => {
+    setShowExportMenu(false);
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(activeAnalysis, null, 2));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `${activeManifest?.title || "c2pa"}-provenance-report.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+    const a = document.createElement("a");
+    a.setAttribute("href", dataStr);
+    a.setAttribute("download", `${activeManifest?.title || "c2pa"}-provenance-report.json`);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   const getTrustStatusStyles = () => {
@@ -196,13 +239,54 @@ export const Dashboard: React.FC = () => {
             <RefreshCw className="w-3.5 h-3.5 text-accent" />
             <span>Compare Flow</span>
           </button>
-          <button
-            onClick={downloadReport}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider bg-foreground text-background hover:bg-foreground/90 transition-all rounded-full py-2 px-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)] cursor-pointer font-bold"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>Export Report</span>
-          </button>
+
+          {/* Split export button */}
+          <div className="relative flex-1 sm:flex-initial" ref={exportMenuRef}>
+            <div className="flex">
+              <button
+                onClick={downloadPdfReport}
+                className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider bg-foreground text-background hover:bg-foreground/90 transition-all rounded-l-full py-2 pl-4 pr-3 cursor-pointer whitespace-nowrap"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export Report</span>
+              </button>
+              <button
+                onClick={() => setShowExportMenu(v => !v)}
+                className="flex items-center justify-center bg-foreground text-background hover:bg-foreground/85 transition-all rounded-r-full py-2 px-2.5 border-l border-background/20 cursor-pointer"
+                aria-label="More export options"
+              >
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showExportMenu ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+
+            {showExportMenu && (
+              <div className="absolute right-0 top-full mt-2 w-54 rounded-xl border border-card-border bg-[#060f12] shadow-2xl shadow-black/70 overflow-hidden z-50">
+                <div className="px-3.5 py-2 border-b border-card-border">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/30">Export options</span>
+                </div>
+                <button
+                  onClick={downloadPdfReport}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-foreground/[0.04] transition-colors cursor-pointer border-b border-card-border"
+                >
+                  <span className="text-lg leading-none">📄</span>
+                  <div>
+                    <div className="text-xs font-bold text-foreground">PDF Report</div>
+                    <div className="text-[10px] text-foreground/40 mt-0.5">Branded provenance report</div>
+                  </div>
+                </button>
+                <button
+                  onClick={downloadJsonReport}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-foreground/[0.04] transition-colors cursor-pointer"
+                >
+                  <FileJson className="w-4 h-4 text-foreground/40 shrink-0" />
+                  <div>
+                    <div className="text-xs font-bold text-foreground/70">JSON Data</div>
+                    <div className="text-[10px] text-foreground/40 mt-0.5">Raw C2PA manifest data</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

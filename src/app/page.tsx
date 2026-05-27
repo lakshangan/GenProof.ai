@@ -86,8 +86,8 @@ export default function Home() {
 
           {/* Logo mark */}
           <div className="flex items-center gap-2.5 select-none">
-            <GenProofLogo size={28} className="text-indigo-400" />
-            <span className="text-sm font-bold tracking-tight text-white/80 hidden sm:inline">GenProof<span className="text-indigo-400">.ai</span></span>
+            <GenProofLogo size={28} className="text-teal-400" />
+            <span className="text-sm font-bold tracking-tight text-white/80 hidden sm:inline">GenProof<span className="text-teal-400">.ai</span></span>
           </div>
 
           <div className="flex items-center gap-6">

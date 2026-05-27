@@ -22,8 +22,8 @@ const AuroraBackground: React.FC<AuroraBackgroundProps> = ({
   children,
   starCount = 60,
   gradientColors = [
-    "var(--aurora-color1, rgba(168,85,247,0.25))",
-    "var(--aurora-color2, rgba(79,70,229,0.25))",
+    "var(--aurora-color1, rgba(14,165,160,0.28))",
+    "var(--aurora-color2, rgba(6,82,90,0.32))",
   ],
   pulseDuration = 10,
   ariaLabel = "Animated aurora background",
@@ -62,9 +62,10 @@ const AuroraBackground: React.FC<AuroraBackgroundProps> = ({
           animate={{ opacity: 1 }}
           transition={{ duration: 2, ease: "easeInOut" }}
         >
-          {/* Top-left purple bloom */}
+          {/* Top-left teal bloom */}
           <motion.div
-            className="absolute -top-1/4 -left-1/4 w-2/3 h-2/3 bg-purple-700 rounded-full filter blur-[120px] opacity-30"
+            className="absolute -top-1/4 -left-1/4 w-2/3 h-2/3 rounded-full filter blur-[130px] opacity-25"
+            style={{ background: "#0ea5a0" }}
             animate={{
               x: [-60, 60, -60],
               y: [-30, 30, -30],
@@ -77,9 +78,10 @@ const AuroraBackground: React.FC<AuroraBackgroundProps> = ({
               ease: "easeInOut",
             }}
           />
-          {/* Bottom-right fuchsia bloom */}
+          {/* Bottom-right dark cyan bloom */}
           <motion.div
-            className="absolute -bottom-1/4 -right-1/4 w-2/3 h-2/3 bg-fuchsia-700 rounded-full filter blur-[120px] opacity-25"
+            className="absolute -bottom-1/4 -right-1/4 w-2/3 h-2/3 rounded-full filter blur-[130px] opacity-20"
+            style={{ background: "#065f60" }}
             animate={{
               x: [60, -60, 60],
               y: [30, -30, 30],
@@ -92,9 +94,10 @@ const AuroraBackground: React.FC<AuroraBackgroundProps> = ({
               ease: "easeInOut",
             }}
           />
-          {/* Center indigo accent */}
+          {/* Center deep teal accent */}
           <motion.div
-            className="absolute top-1/4 left-1/3 w-1/2 h-1/2 bg-indigo-700 rounded-full filter blur-[100px] opacity-20"
+            className="absolute top-1/4 left-1/3 w-1/2 h-1/2 rounded-full filter blur-[110px] opacity-15"
+            style={{ background: "#0d9488" }}
             animate={{
               x: [30, -30, 30],
               y: [-40, 40, -40],
@@ -107,9 +110,10 @@ const AuroraBackground: React.FC<AuroraBackgroundProps> = ({
               ease: "easeInOut",
             }}
           />
-          {/* Violet streak top-right */}
+          {/* Soft aqua streak top-right */}
           <motion.div
-            className="absolute -top-1/6 right-0 w-1/3 h-1/2 bg-violet-600 rounded-full filter blur-[90px] opacity-15"
+            className="absolute -top-1/6 right-0 w-1/3 h-1/2 rounded-full filter blur-[95px] opacity-10"
+            style={{ background: "#22d3ee" }}
             animate={{
               x: [-20, 20, -20],
               y: [10, -10, 10],
