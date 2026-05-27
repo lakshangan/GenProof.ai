@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, AlertCircle, ShieldCheck } from "@/components/icons";
+import { Upload, AlertCircle, ShieldCheck } from "@/components/CustomIcons";
 import useStore from "@/store/useStore";
 
 export const UploadZone: React.FC = () => {

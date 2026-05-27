@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, CheckCircle2, ShieldAlert } from "@/components/icons";
+import { Loader2, CheckCircle2, ShieldAlert } from "@/components/CustomIcons";
 
 interface ScanStep {
   label: string;
@@ -11,11 +11,11 @@ interface ScanStep {
 }
 
 const SCAN_STEPS: ScanStep[] = [
-  { label: "Scanning digital asset structure...", successText: "JUMBF metadata structure detected", duration: 550 },
-  { label: "Extracting embedded manifest store...", successText: "C2PA Provenance Manifest Store extracted", duration: 650 },
-  { label: "Performing hash validation...", successText: "Asset content hash matches claim record", duration: 500 },
-  { label: "Verifying signature certificates...", successText: "Cryptographic signature chain authenticated", duration: 600 },
-  { label: "Compiling assertions and history...", successText: "Assertions and edit timeline successfully compiled", duration: 500 },
+  { label: "Reading the image container headers...", successText: "Parsed file headers and image dimensions", duration: 600 },
+  { label: "Looking for camera profiles & software stamps...", successText: "Found creator metadata & camera signature details", duration: 650 },
+  { label: "Locating cryptographic signature credentials...", successText: "Found and decoded C2PA credentials package", duration: 500 },
+  { label: "Checking if the asset has been modified...", successText: "Reconstructed editing history & creation timeline", duration: 600 },
+  { label: "Verifying digital authenticity seals...", successText: "Cryptographic signature seal fully validated", duration: 500 },
 ];
 
 export const ScanningSequence: React.FC = () => {

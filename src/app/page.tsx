@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { ReactLenis } from "lenis/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, ShieldAlert, Sparkles, HelpCircle, Sun, Moon, Info, Lock } from "@/components/icons";
+import { ShieldCheck, ShieldAlert, Sparkles, HelpCircle, Sun, Moon, Info, Lock } from "@/components/CustomIcons";
 import useStore from "@/store/useStore";
 import UploadZone from "@/components/UploadZone";
 import ScanningSequence from "@/components/ScanningSequence";

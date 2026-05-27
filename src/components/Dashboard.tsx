@@ -6,20 +6,21 @@ import {
   ArrowLeft, ShieldCheck, ShieldAlert, ShieldX, 
   History, Cpu, FileText, FileJson, Calendar, 
   Code, Download, RefreshCw, ChevronDown, 
-  ChevronRight, Award, Lock, ExternalLink, Eye, Copy, Check
-} from "@/components/icons";
+  ChevronRight, Award, Lock, ExternalLink, Eye, Copy, Check, Info
+} from "@/components/CustomIcons";
 import useStore from "@/store/useStore";
 
-type ExplorerTab = "visual" | "json" | "cert";
+type TechnicalTab = "timeline" | "forensics" | "signatures" | "assertions";
 
 export const Dashboard: React.FC = () => {
   const activeAnalysis = useStore((state) => state.activeAnalysis);
   const resetAll = useStore((state) => state.resetAll);
   const setView = useStore((state) => state.setView);
   
-  const [activeTab, setActiveTab] = useState<ExplorerTab>("visual");
+  const [activeTab, setActiveTab] = useState<TechnicalTab>("timeline");
   const [expandedAssertion, setExpandedAssertion] = useState<string | null>(null);
   const [copiedAssertion, setCopiedAssertion] = useState<string | null>(null);
+  const [copiedJson, setCopiedJson] = useState(false);
 
   if (!activeAnalysis) return null;
 
@@ -42,6 +43,12 @@ export const Dashboard: React.FC = () => {
     setTimeout(() => setCopiedAssertion(null), 2000);
   };
 
+  const handleCopyRawJson = () => {
+    navigator.clipboard.writeText(JSON.stringify(allManifests, null, 2));
+    setCopiedJson(true);
+    setTimeout(() => setCopiedJson(false), 2000);
+  };
+
   const downloadReport = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(activeAnalysis, null, 2));
     const downloadAnchor = document.createElement("a");
@@ -56,29 +63,32 @@ export const Dashboard: React.FC = () => {
     switch (trustLevel) {
       case "VERIFIED":
         return {
-          icon: <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />,
-          borderColor: "border-l-emerald-500",
-          glowColor: "rgba(16, 185, 129, 0.15)",
-          textColor: "text-emerald-400",
-          title: "Verified Credentials",
+          icon: <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />,
+          borderColor: "border-emerald-500/20 dark:border-emerald-500/30",
+          bgColor: "bg-emerald-500/[0.02] dark:bg-emerald-500/[0.015]",
+          textColor: "text-emerald-700 dark:text-emerald-400",
+          badgeBg: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/20",
+          title: "Verified Origin",
         };
       case "PARTIAL":
         const isMetadataScan = validationState === "MetadataDetected";
         return {
-          icon: <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0" />,
-          borderColor: "border-l-amber-500",
-          glowColor: "rgba(245, 158, 11, 0.15)",
-          textColor: "text-amber-400",
-          title: isMetadataScan ? "AI Metadata Detected" : "Untrusted Certificate",
+          icon: <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />,
+          borderColor: "border-amber-500/20 dark:border-amber-500/30",
+          bgColor: "bg-amber-500/[0.02] dark:bg-amber-500/[0.015]",
+          textColor: "text-amber-700 dark:text-amber-400",
+          badgeBg: "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/20",
+          title: isMetadataScan ? "AI Metadata Detected" : "Untrusted Signature",
         };
       case "UNVERIFIED":
       default:
         return {
-          icon: <ShieldX className="w-5 h-5 text-red-400 shrink-0" />,
-          borderColor: "border-l-red-500",
-          glowColor: "rgba(239, 68, 68, 0.15)",
-          textColor: "text-red-400",
-          title: "Unverified Asset",
+          icon: <ShieldX className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />,
+          borderColor: "border-red-500/20 dark:border-red-500/30",
+          bgColor: "bg-red-500/[0.02] dark:bg-red-500/[0.015]",
+          textColor: "text-red-700 dark:text-red-400",
+          badgeBg: "bg-red-500/10 text-red-800 dark:text-red-300 border-red-500/20",
+          title: "Unverified Content",
         };
     }
   };
@@ -86,34 +96,109 @@ export const Dashboard: React.FC = () => {
   const trustStyle = getTrustStatusStyles();
 
   const getOriginName = () => {
-    if (!activeManifest) return "Unknown Origin";
+    if (!activeManifest) return "Unknown Source";
     return activeManifest.aiGeneratorTool || activeManifest.claimGeneratorDisplay?.split("via")?.pop()?.trim() || "Unknown Software";
   };
 
+  // Extract camera capture specifications if available
+  const getCameraInfo = () => {
+    if (!forensic?.exifFields) return null;
+    const make = forensic.exifFields.Make;
+    const model = forensic.exifFields.Model;
+    if (!make && !model) return null;
+    return {
+      make: make?.toString() || "",
+      model: model?.toString() || "",
+      exposure: forensic.exifFields.ExposureTime ? `${forensic.exifFields.ExposureTime}s` : null,
+      aperture: forensic.exifFields.FNumber ? `f/${forensic.exifFields.FNumber}` : null,
+      iso: forensic.exifFields.ISO || forensic.exifFields.ISOSpeedRatings || null,
+      lens: forensic.exifFields.LensModel || forensic.exifFields.LensInfo || null,
+      focalLength: forensic.exifFields.FocalLength ? `${forensic.exifFields.FocalLength}mm` : null,
+    };
+  };
+
+  const cameraInfo = getCameraInfo();
+
+  // Extract dimensions
+  const getDimensions = () => {
+    const width = forensic?.exifFields?.PixelXDimension || forensic?.exifFields?.ImageWidth || forensic?.xmpFields?.PixelXDimension;
+    const height = forensic?.exifFields?.PixelYDimension || forensic?.exifFields?.ImageHeight || forensic?.xmpFields?.PixelYDimension;
+    if (width && height) return `${width} × ${height} px`;
+    return null;
+  };
+
+  const dimensions = getDimensions();
+
+  // Parse AI Training restriction from stds.schema-org.CreativeWork or c2pa.training-mining
+  const getAiTrainingRestriction = () => {
+    if (!activeManifest?.assertions) return "No restrictions specified";
+    const assertion = activeManifest.assertions.find(
+      (a: any) => a.label === "c2pa.training-mining"
+    );
+    if (!assertion || !assertion.data) return "No restrictions specified";
+    
+    const entries = assertion.data.entries || {};
+    const training = entries["c2pa.ai-training"]?.constraint;
+    const mining = entries["c2pa.ai-data-mining"]?.constraint;
+    
+    if (training === "c2pa.restricted" && mining === "c2pa.restricted") {
+      return "Restricted (Do Not Train or Mine)";
+    } else if (training === "c2pa.restricted") {
+      return "Restricted (Do Not Train)";
+    } else if (mining === "c2pa.restricted") {
+      return "Restricted (Do Not Mine)";
+    }
+    return "Allowed / No restrictions";
+  };
+
+  const aiTraining = getAiTrainingRestriction();
+
+  // Compile editing software list
+  const getEditingSoftware = () => {
+    const list: string[] = [];
+    if (activeManifest?.history) {
+      activeManifest.history.forEach((h: any) => {
+        if (h.software && h.software !== activeManifest.aiGeneratorTool && h.software !== getOriginName()) {
+          list.push(h.software);
+        }
+      });
+    }
+    if (forensic?.exifFields?.Software) {
+      const sw = forensic.exifFields.Software.toString();
+      if (!list.some(item => item.toLowerCase().includes(sw.toLowerCase()))) {
+        list.push(sw);
+      }
+    }
+    const unique = Array.from(new Set(list));
+    return unique.length > 0 ? unique.join(", ") : "None detected";
+  };
+
+  const editingSoftware = getEditingSoftware();
+
   return (
-    <div className="w-full max-w-6xl mx-auto px-6 py-6 z-10 flex flex-col gap-10 min-h-screen">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-8 min-h-screen text-foreground select-text">
       
       {/* Top Header Actions */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-white/[0.04] z-20">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-5 border-b border-card-border">
         <button
           onClick={resetAll}
-          className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/50 hover:text-white transition-all bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.05] hover:border-white/[0.1] rounded-full py-2.5 px-4.5 cursor-pointer"
+          className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground/50 hover:text-foreground transition-all bg-foreground/[0.02] hover:bg-foreground/[0.05] border border-card-border rounded-full py-2 px-4 cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>New Upload</span>
         </button>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
           <button
             onClick={() => setView("compare")}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider border border-white/[0.05] hover:border-white/[0.12] text-white/75 hover:text-white bg-white/[0.01] hover:bg-white/[0.05] transition-all rounded-full py-2.5 px-4.5 cursor-pointer"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider border border-card-border text-foreground/75 hover:text-foreground bg-foreground/[0.01] hover:bg-foreground/[0.04] transition-all rounded-full py-2 px-4 cursor-pointer"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-indigo-400" />
+            <RefreshCw className="w-3.5 h-3.5 text-accent" />
             <span>Compare Flow</span>
           </button>
           <button
             onClick={downloadReport}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider bg-white text-black hover:bg-white/90 transition-all rounded-full py-2.5 px-4.5 shadow-[0_4px_20px_rgba(255,255,255,0.06)] cursor-pointer"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider bg-foreground text-background hover:bg-foreground/90 transition-all rounded-full py-2 px-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)] cursor-pointer font-bold"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export Report</span>
@@ -121,330 +206,495 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Split-Screen Main Layout */}
-      <div className="flex flex-col lg:flex-row gap-12 items-start relative">
+      {/* ─────────────────────────────────────────────────────────────
+         SECTION 1: GENERAL USER OVERVIEW (SIMPLE & CLEAR)
+         ───────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col lg:flex-row gap-8 items-stretch">
         
-        {/* LEFT COLUMN: Sticky Image Preview (50% Width) */}
-        <div className="w-full lg:w-5/12 lg:sticky lg:top-24 flex flex-col gap-6">
-          
-          <div className="rounded-[2rem] p-2 border border-white/[0.06] bg-white/[0.02] backdrop-blur-2xl shadow-xl relative overflow-hidden group">
-            {/* Ambient Background Glow matching state */}
-            <div 
-              className="absolute -top-12 -right-12 w-48 h-48 rounded-full blur-[64px] pointer-events-none opacity-20 transition-all duration-1000"
-              style={{ backgroundColor: trustStyle.glowColor }}
-            />
-            
-            <div className="aspect-[4/3] rounded-[1.75rem] overflow-hidden bg-black/45 relative">
+        {/* Left Column: Image Card */}
+        <div className="w-full lg:w-5/12 flex flex-col">
+          <div className="flex-1 rounded-[1.5rem] border border-card-border bg-card-bg/40 backdrop-blur-xl p-4 flex flex-col justify-between shadow-sm">
+            <div className="aspect-[4/3] rounded-[1rem] overflow-hidden bg-black/[0.04] dark:bg-black/45 relative flex items-center justify-center border border-card-border/60">
               {activeManifest?.thumbnailBase64 ? (
                 <img 
                   src={activeManifest.thumbnailBase64} 
-                  alt="Embedded Provenance"
-                  className="w-full h-full object-contain bg-black/10 transition-transform duration-500 group-hover:scale-[1.015]"
+                  alt="Embedded Provenance Thumbnail"
+                  className="w-full h-full object-contain select-none"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col justify-center items-center text-white/30 gap-3">
-                  <ShieldX className="w-12 h-12 stroke-[1.2] text-white/10" />
-                  <span className="text-xs font-medium uppercase tracking-wider">No Embedded Thumbnail</span>
+                <div className="w-full h-full flex flex-col justify-center items-center text-foreground/30 gap-2">
+                  <FileText className="w-10 h-10 stroke-[1.2] opacity-40" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider">No Embedded Thumbnail</span>
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Minimalist Trust Status Card */}
-          <div className={`rounded-2xl p-5 border border-white/[0.04] border-l-3 ${trustStyle.borderColor} bg-white/[0.01] backdrop-blur-xl shadow-lg flex flex-col gap-2 relative overflow-hidden`}>
-            <div className="absolute top-0 right-0 w-24 h-24 blur-[40px] pointer-events-none rounded-full" style={{ backgroundColor: trustStyle.glowColor, opacity: 0.12 }} />
-            <div className="flex items-center gap-2.5">
-              {trustStyle.icon}
-              <span className={`text-xs font-bold uppercase tracking-wider ${trustStyle.textColor}`}>{trustStyle.title}</span>
+            
+            {/* Minimalist File Info */}
+            <div className="mt-4 pt-4 border-t border-card-border/60 grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <span className="text-foreground/45 block text-[10px] uppercase tracking-wider">Filename</span>
+                <span className="font-semibold text-foreground truncate block mt-0.5" title={activeManifest?.title || "Unknown Asset"}>
+                  {activeManifest?.title || "Unknown Asset"}
+                </span>
+              </div>
+              <div>
+                <span className="text-foreground/45 block text-[10px] uppercase tracking-wider">Format & Resolution</span>
+                <span className="font-semibold text-foreground block mt-0.5">
+                  {(activeManifest?.format?.split("/")[1] || "JPEG").toUpperCase()} {dimensions ? `• ${dimensions}` : ""}
+                </span>
+              </div>
             </div>
-            <p className="text-sm leading-relaxed text-white/70 mt-1 pl-7">
-              {trustReason}
-            </p>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Scrolling Details & Inspector (7/12 Width) */}
-        <div className="w-full lg:w-7/12 flex flex-col gap-10">
-          
-          {/* Top Info Block */}
-          <div className="flex flex-col gap-4">
-            <span className="text-[10px] uppercase tracking-widest font-extrabold text-indigo-400">Provenance Verified</span>
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-              <span className="bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">{getOriginName()}</span>
-            </h2>
-            <p className="text-base font-light text-white/60 leading-relaxed max-w-xl mt-2">
-              {activeManifest?.isAiGenerated
-                ? `This asset is cryptographically verified to have been synthesized using ${getOriginName()} Content Credentials.`
-                : activeManifest
-                ? `This media file was processed or exported via ${activeManifest.claimGeneratorDisplay || "verified software"} retaining its authenticity signature.`
-                : `No C2PA provenance signatures were found. The asset is unverified.`
-              }
-            </p>
+        {/* Right Column: Authenticity Summary Card */}
+        <div className="w-full lg:w-7/12 flex flex-col">
+          <div className={`flex-1 rounded-[1.5rem] border ${trustStyle.borderColor} ${trustStyle.bgColor} p-6 sm:p-7 flex flex-col justify-between shadow-sm relative overflow-hidden`}>
             
-            {activeManifest && (
-              <div className="flex flex-wrap items-center gap-3 mt-3">
-                <div className="flex items-center gap-2 text-xs text-white/70 bg-white/[0.02] border border-white/[0.06] rounded-full px-3.5 py-1.5 font-medium">
-                  <Calendar className="w-3.5 h-3.5 text-white/40" />
-                  <span>{activeManifest.signature?.time ? new Date(activeManifest.signature.time).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : "Unknown Date"}</span>
-                </div>
-                {activeManifest.isAiGenerated && (
-                  <div className="flex items-center gap-2 text-xs text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-3.5 py-1.5 font-medium">
-                    <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>AI Generated</span>
-                  </div>
+            {/* Title & Trust Status */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${trustStyle.badgeBg}`}>
+                  {trustStyle.icon}
+                  {trustStyle.title}
+                </span>
+                {activeManifest?.isAiGenerated && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-accent/20 bg-accent/5 text-accent text-[10px] font-bold uppercase tracking-wider">
+                    <Cpu className="w-3 h-3" />
+                    AI Origin
+                  </span>
                 )}
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mt-2">
+                {activeManifest?.isAiGenerated ? (
+                  <>
+                    AI Generated Media
+                    <span className="block text-xs sm:text-sm font-semibold text-foreground/45 mt-1.5 uppercase tracking-wider">
+                      Generated via {getOriginName()}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Authentic Physical Origin
+                    {cameraInfo ? (
+                      <span className="block text-xs sm:text-sm font-semibold text-foreground/45 mt-1.5 uppercase tracking-wider">
+                        Captured via {cameraInfo.make} {cameraInfo.model}
+                      </span>
+                    ) : (
+                      activeManifest && (
+                        <span className="block text-xs sm:text-sm font-semibold text-foreground/45 mt-1.5 uppercase tracking-wider">
+                          Processed via {getOriginName()}
+                        </span>
+                      )
+                    )}
+                  </>
+                )}
+              </h2>
+
+              <p className="text-sm text-foreground/70 leading-relaxed mt-3 max-w-xl">
+                {trustReason}
+              </p>
+            </div>
+
+            {/* Core Creation Grid (layman stats) */}
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 pt-6 border-t border-card-border">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] uppercase tracking-wider text-foreground/40 font-semibold">Creator / Source Tool</span>
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 mt-0.5">
+                  <Cpu className="w-4 h-4 text-foreground/50" />
+                  {getOriginName()}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] uppercase tracking-wider text-foreground/40 font-semibold">Capture / Signature Date</span>
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 mt-0.5">
+                  <Calendar className="w-4 h-4 text-foreground/50" />
+                  {activeManifest?.signature?.time 
+                    ? new Date(activeManifest.signature.time).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) 
+                    : "Not recorded"}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] uppercase tracking-wider text-foreground/40 font-semibold">Editing Software Used</span>
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 mt-0.5">
+                  <FileText className="w-4 h-4 text-foreground/50" />
+                  {editingSoftware}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] uppercase tracking-wider text-foreground/40 font-semibold">AI Training Rights</span>
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 mt-0.5">
+                  <Lock className="w-4 h-4 text-foreground/50" />
+                  {aiTraining}
+                </span>
+              </div>
+            </div>
+
+            {/* Camera Exif Metadata Summary (if human origin camera present) */}
+            {cameraInfo && (
+              <div className="mt-6 p-4 rounded-xl border border-card-border bg-foreground/[0.01] flex flex-col gap-2.5">
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-foreground/50">
+                  <Info className="w-3.5 h-3.5" />
+                  Camera Capture Specifications
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <span className="text-foreground/40 block text-[9px] uppercase font-semibold">Device</span>
+                    <span className="font-semibold text-foreground truncate block">{cameraInfo.make} {cameraInfo.model}</span>
+                  </div>
+                  {cameraInfo.lens && (
+                    <div className="col-span-1 sm:col-span-2">
+                      <span className="text-foreground/40 block text-[9px] uppercase font-semibold">Lens</span>
+                      <span className="font-semibold text-foreground truncate block" title={cameraInfo.lens}>{cameraInfo.lens}</span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-foreground/40 block text-[9px] uppercase font-semibold">Exposure Settings</span>
+                    <span className="font-semibold text-foreground block">
+                      {[cameraInfo.aperture, cameraInfo.exposure, cameraInfo.iso ? `ISO ${cameraInfo.iso}` : null].filter(Boolean).join(" • ")}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
+        </div>
 
-          <div className="w-full h-px bg-gradient-to-r from-white/[0.06] to-transparent" />
+      </div>
 
-          {/* Timeline Section */}
-          <div className="flex flex-col gap-6">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2.5 tracking-tight">
-              <History className="w-4.5 h-4.5 text-indigo-400" />
-              Provenance Timeline
-            </h3>
+      <div className="w-full h-px bg-card-border my-2" />
+
+      {/* ─────────────────────────────────────────────────────────────
+         SECTION 2: ADVANCED TECHNICAL BREAKDOWN (TABBED & STRUCTURED)
+         ───────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-6">
+        
+        {/* Tab Switcher */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <Award className="w-4.5 h-4.5 text-accent" />
+            <h3 className="text-lg font-bold tracking-tight text-foreground">Advanced Provenance Report</h3>
+          </div>
+
+          <div className="flex flex-wrap gap-1 p-0.5 rounded-xl border border-card-border bg-foreground/[0.01] w-full sm:w-auto">
+            {(["timeline", "forensics", "signatures", "assertions"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 sm:flex-none text-[10px] font-bold px-4 py-2 rounded-lg uppercase tracking-wider transition-all cursor-pointer ${
+                  activeTab === tab 
+                    ? "bg-foreground text-background shadow-sm" 
+                    : "text-foreground/50 hover:text-foreground/80"
+                }`}
+              >
+                {tab === "timeline" && "Edit History"}
+                {tab === "forensics" && "Forensic Logs"}
+                {tab === "signatures" && "Digital Certs"}
+                {tab === "assertions" && "Raw Assertions"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Contents */}
+        <div className="rounded-2xl border border-card-border bg-card-bg/25 backdrop-blur-xl p-5 min-h-[300px]">
+          <AnimatePresence mode="wait">
             
-            {activeManifest?.history && activeManifest.history.length > 0 ? (
-              <div className="pl-2">
-                <div className="relative border-l border-white/[0.08] ml-2.5 pl-6 space-y-6 py-1">
-                  {activeManifest.history.map((item: any, index: number) => {
-                    const isCreation = item.action.includes("created");
-                    return (
-                      <div key={index} className="relative group">
-                        <div className="absolute -left-[30px] top-1.5 z-10">
-                          {isCreation ? (
-                            <div className="w-4 h-4 rounded-full border border-indigo-500/40 bg-indigo-950 flex items-center justify-center">
-                              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+            {/* TAB 1: EDIT TIMELINE */}
+            {activeTab === "timeline" && (
+              <motion.div
+                key="timeline"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col gap-4"
+              >
+                <div className="flex flex-col gap-1 mb-2">
+                  <h4 className="text-sm font-bold text-foreground">Provenance History Log</h4>
+                  <p className="text-xs text-foreground/40">Cryptographic audit log of actions applied to this file since creation.</p>
+                </div>
+
+                {activeManifest?.history && activeManifest.history.length > 0 ? (
+                  <div className="pl-2 py-2">
+                    <div className="relative border-l border-card-border ml-2 pl-6 space-y-6">
+                      {activeManifest.history.map((item: any, index: number) => {
+                        const isCreation = item.action?.includes("created") || index === 0;
+                        return (
+                          <div key={index} className="relative group">
+                            {/* Bullet Point */}
+                            <div className="absolute -left-[31px] top-1 z-10">
+                              {isCreation ? (
+                                <div className="w-3.5 h-3.5 rounded-full border border-accent/40 bg-background flex items-center justify-center shadow-sm">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                                </div>
+                              ) : (
+                                <div className="w-2.5 h-2.5 rounded-full border border-card-border bg-card-bg flex items-center justify-center ml-0.5 mt-0.5">
+                                  <span className="w-1 h-1 rounded-full bg-foreground/30" />
+                                </div>
+                              )}
                             </div>
-                          ) : (
-                            <div className="w-3 h-3 rounded-full border border-white/20 bg-neutral-900 flex items-center justify-center ml-0.5 mt-0.5">
-                              <span className="w-1 h-1 rounded-full bg-white/40" />
+
+                            <div className="flex flex-col gap-1">
+                              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                                <span className={`text-xs font-bold tracking-tight uppercase ${isCreation ? "text-foreground" : "text-foreground/80"}`}>
+                                  {item.display}
+                                </span>
+                                {item.timestamp && (
+                                  <span className="text-[10px] font-mono text-foreground/45 bg-foreground/[0.02] border border-card-border px-2 py-0.5 rounded">
+                                    {new Date(item.timestamp).toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-foreground/50 leading-relaxed max-w-2xl">{item.description}</p>
+                              {item.software && (
+                                <div className="mt-1 text-[9px] font-semibold text-accent border border-accent/15 rounded px-2 py-0.5 w-fit bg-accent/5 uppercase tracking-wider">
+                                  Via {item.software}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                        <div className="flex flex-col">
-                          <div className="flex items-center justify-between gap-4">
-                            <span className={`text-sm font-semibold tracking-tight ${isCreation ? "text-white text-base" : "text-white/80"}`}>{item.display}</span>
-                            {item.timestamp && <span className="text-[10px] font-mono text-white/40 bg-white/[0.02] border border-white/[0.05] px-2 py-0.5 rounded">{new Date(item.timestamp).toLocaleDateString()}</span>}
                           </div>
-                          <p className="text-xs text-white/50 mt-1 leading-relaxed">{item.description}</p>
-                          {item.software && (
-                            <div className="mt-2 text-[10px] font-semibold text-indigo-300 border border-indigo-500/10 rounded px-2 py-0.5 w-fit bg-indigo-500/[0.03] uppercase tracking-wider">
-                              {item.software}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div className="text-xs text-white/30 italic ml-7">No editing action history claims available.</div>
-            )}
-          </div>
-
-          {/* Deep Forensic Analysis Section */}
-          {forensic && forensic.signals && forensic.signals.length > 0 && (
-            <div className="flex flex-col gap-6 mt-2 border-t border-white/[0.04] pt-8">
-              <div className="flex flex-col gap-1">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2.5 tracking-tight">
-                  <Eye className="w-4.5 h-4.5 text-indigo-400" />
-                  Deep Forensic Analysis
-                </h3>
-                <p className="text-xs text-white/40 ml-7">Metadata extracted directly from EXIF, XMP, IPTC, and raw binary layers.</p>
-              </div>
-              
-              <div className="p-5 rounded-2xl border border-indigo-500/10 bg-indigo-500/[0.01] flex flex-col gap-4 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 blur-[40px] pointer-events-none" />
-                <div className="flex items-center gap-3">
-                  <div className={`px-2.5 py-1 rounded text-[9px] font-bold uppercase tracking-wider border ${
-                    forensic.classification.includes("AI") ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/20" : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
-                  }`}>
-                    {forensic.classification.replace("_", " ")}
-                  </div>
-                  <span className="text-xs font-semibold text-white/60">Confidence Level: <span className="text-white">{forensic.confidence}%</span></span>
-                </div>
-                <p className="text-sm text-white/70 leading-relaxed font-light">{forensic.summary}</p>
-                
-                {forensic.possiblyStripped && (
-                  <div className="mt-1 p-3.5 rounded-xl bg-amber-500/[0.02] border border-amber-500/10 flex items-start gap-3">
-                    <ShieldAlert className="w-4.5 h-4.5 text-amber-400 shrink-0 mt-0.5" />
-                    <div className="flex flex-col gap-0.5">
-                      <strong className="text-xs text-amber-300 font-semibold uppercase tracking-wider">Badge Stripping Detected</strong>
-                      <p className="text-[11px] text-white/50 leading-relaxed mt-0.5">
-                        Post-processing tools were detected. C2PA provenance credentials may have been removed or modified during export.
-                      </p>
+                        );
+                      })}
                     </div>
                   </div>
+                ) : (
+                  <div className="text-xs text-foreground/30 italic py-6">No editing history available in the manifest.</div>
                 )}
-              </div>
+              </motion.div>
+            )}
 
-              <div className="flex flex-col gap-2">
-                {forensic.signals.map((signal: any, idx: number) => (
-                  <div key={idx} className="group flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-white/[0.03] bg-white/[0.01] hover:bg-white/[0.02] transition-all hover:border-white/[0.06]">
-                    <div className="shrink-0 pt-0.5">
-                      <div className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${
-                        signal.confidence === "HIGH" ? "bg-red-500/10 text-red-400 border-red-500/20" : 
-                        signal.confidence === "MEDIUM" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : 
-                        "bg-white/5 text-white/40 border-white/10"
-                      }`}>
-                        {signal.confidence} SIGNAL
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1 w-full">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[9px] font-bold font-mono text-indigo-400/80 bg-indigo-500/5 px-2 py-0.5 rounded uppercase tracking-wider">{signal.source}</span>
-                        <span className="text-[10px] font-mono text-white/30 truncate">{signal.field}</span>
-                      </div>
-                      <span className="text-sm font-semibold text-white tracking-tight mt-1">{signal.value}</span>
-                      <p className="text-xs text-white/50 leading-relaxed font-light">{signal.meaning}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Cryptographic Inspector (Sleek Accordions) */}
-          {activeManifest?.assertions && activeManifest.assertions.length > 0 && (
-            <div className="flex flex-col gap-6">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2.5 tracking-tight">
-                <Award className="w-4.5 h-4.5 text-indigo-400" />
-                Cryptographic Assertions
-              </h3>
-              
-              <div className="flex flex-col gap-2.5">
-                {activeManifest.assertions.map((assertion: any, index: number) => {
-                  const isExpanded = expandedAssertion === assertion.label;
-                  const jsonStr = JSON.stringify(assertion.data, null, 2);
-                  return (
-                    <div key={index} className="border border-white/[0.04] rounded-xl bg-white/[0.01] overflow-hidden transition-all hover:border-white/[0.08]">
-                      <button
-                        onClick={() => toggleAssertion(assertion.label)}
-                        className="w-full flex justify-between items-center p-3.5 text-left cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <Code className="w-4 h-4 text-white/35" />
-                          <span className="font-semibold text-xs text-white uppercase tracking-wider">{assertion.title}</span>
-                          <span className="text-[9px] font-mono text-white/30 hidden sm:inline">{assertion.label}</span>
-                        </div>
-                        {isExpanded ? <ChevronDown className="w-3.5 h-3.5 text-white/40" /> : <ChevronRight className="w-3.5 h-3.5 text-white/40" />}
-                      </button>
-                      <AnimatePresence>
-                        {isExpanded && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="border-t border-white/[0.04] bg-black/20 overflow-hidden relative"
-                          >
-                            <button
-                              onClick={() => handleCopyText(jsonStr, assertion.label)}
-                              className="absolute top-3 right-3 text-white/40 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] p-1.5 rounded-lg transition-colors cursor-pointer"
-                              title="Copy Assertion JSON"
-                            >
-                              {copiedAssertion === assertion.label ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-                            <pre className="p-4 text-[11px] font-mono text-white/60 leading-relaxed overflow-x-auto max-h-[300px]">
-                              {jsonStr}
-                            </pre>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Raw Explorer */}
-          <div className="flex flex-col gap-6 border border-white/[0.04] bg-white/[0.01] rounded-2xl p-5">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2.5 tracking-wider uppercase">
-                <FileJson className="w-4 h-4 text-indigo-400" />
-                Raw Metadata Explorer
-              </h3>
-              <div className="flex gap-0.5 bg-black/35 p-0.5 rounded-lg border border-white/[0.04]">
-                {(["visual", "json", "cert"] as ExplorerTab[]).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`text-[9px] font-bold px-3 py-1.5 rounded-md uppercase tracking-wider transition-all cursor-pointer ${
-                      activeTab === tab ? "bg-white text-black shadow" : "text-white/40 hover:text-white/80"
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="min-h-[200px]">
-              {activeTab === "visual" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-white/60">
-                  <div className="p-3.5 rounded-xl bg-black/15 border border-white/[0.03]">
-                    <div className="text-[9px] uppercase tracking-widest font-semibold text-white/30 mb-0.5">Claim Generator</div>
-                    <div className="font-semibold text-white truncate">{activeManifest?.claimGenerator || "N/A"}</div>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-black/15 border border-white/[0.03]">
-                    <div className="text-[9px] uppercase tracking-widest font-semibold text-white/30 mb-0.5">Manifest Label</div>
-                    <div className="font-mono text-[11px] text-white truncate">{activeManifest?.label || "N/A"}</div>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-black/15 border border-white/[0.03]">
-                    <div className="text-[9px] uppercase tracking-widest font-semibold text-white/30 mb-0.5">Mime Type Format</div>
-                    <div className="font-semibold text-white uppercase">{activeManifest?.format || "N/A"}</div>
-                  </div>
+            {/* TAB 2: FORENSIC SIGNALS */}
+            {activeTab === "forensics" && (
+              <motion.div
+                key="forensics"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col gap-4"
+              >
+                <div className="flex flex-col gap-1 mb-2">
+                  <h4 className="text-sm font-bold text-foreground">Deep Forensic Analysis Logs</h4>
+                  <p className="text-xs text-foreground/40">Metadata signals extracted directly from EXIF, XMP, IPTC, and raw binary signatures.</p>
                 </div>
-              )}
 
-              {activeTab === "json" && (
-                <pre className="p-3.5 rounded-xl border border-white/[0.03] bg-black/20 text-[11px] font-mono text-white/50 leading-relaxed overflow-x-auto max-h-[350px]">
-                  {JSON.stringify(allManifests, null, 2)}
-                </pre>
-              )}
-
-              {activeTab === "cert" && (
-                <div className="flex flex-col gap-4">
-                  {activeManifest?.signature ? (
-                    <div className="cert-pass-border border border-white/[0.06] rounded-xl overflow-hidden shadow-lg bg-gradient-to-b from-white/[0.01] to-transparent">
-                      <div className="p-3.5 border-b border-white/[0.06] bg-black/20 flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <Lock className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="font-bold text-white text-[10px] uppercase tracking-wider">Signing Authority Certificate</span>
+                {forensic && forensic.signals && forensic.signals.length > 0 ? (
+                  <div className="flex flex-col gap-4">
+                    {/* Summary Callout */}
+                    <div className="p-4 rounded-xl border border-card-border bg-foreground/[0.01] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs font-semibold text-foreground">Scanned Metadata Profile</span>
+                        <p className="text-xs text-foreground/60 leading-relaxed max-w-xl">{forensic.summary}</p>
+                      </div>
+                      <div className="flex items-center gap-4 shrink-0">
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className="text-[9px] font-semibold text-foreground/40 uppercase">Confidence</span>
+                          <span className="text-lg font-bold text-foreground">{forensic.confidence}%</span>
                         </div>
-                        <span className="text-[9px] font-mono py-0.5 px-2 bg-emerald-500/10 text-emerald-300 rounded font-bold uppercase border border-emerald-500/20">
-                          {activeManifest.signature.alg}
+                        <div className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                          forensic.classification?.includes("AI") 
+                            ? "bg-accent/10 text-accent border-accent/20" 
+                            : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                        }`}>
+                          {forensic.classification?.replace("_", " ")}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stripped Badge Warn */}
+                    {forensic.possiblyStripped && (
+                      <div className="p-3.5 rounded-xl bg-amber-500/[0.02] border border-amber-500/15 flex items-start gap-3">
+                        <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                        <div>
+                          <strong className="text-xs text-amber-700 dark:text-amber-300 font-semibold uppercase tracking-wider block">Metadata Stripping Detected</strong>
+                          <p className="text-[11px] text-foreground/50 leading-relaxed mt-0.5">
+                            Post-processing signs were found (e.g. Photoshop resource blocks). Original C2PA Content Credentials may have been removed during conversion or export.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Signals Grid Table */}
+                    <div className="overflow-x-auto border border-card-border rounded-xl bg-black/[0.02]">
+                      <table className="w-full text-xs text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-card-border bg-foreground/[0.01]">
+                            <th className="py-3 px-4 font-semibold text-foreground/40 uppercase tracking-wider w-1/6">Source</th>
+                            <th className="py-3 px-4 font-semibold text-foreground/40 uppercase tracking-wider w-1/4">Metadata Tag</th>
+                            <th className="py-3 px-4 font-semibold text-foreground/40 uppercase tracking-wider w-1/4">Reported Value</th>
+                            <th className="py-3 px-4 font-semibold text-foreground/40 uppercase tracking-wider w-1/3">Scanned Meaning</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-card-border">
+                          {forensic.signals.map((signal: any, idx: number) => (
+                            <tr key={idx} className="hover:bg-foreground/[0.01] transition-colors">
+                              <td className="py-3 px-4">
+                                <span className="text-[9px] font-mono font-bold text-accent/80 bg-accent/5 px-2 py-0.5 rounded border border-accent/10 uppercase tracking-wider">
+                                  {signal.source}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 font-mono text-[10px] text-foreground/70 truncate max-w-[200px]">{signal.field}</td>
+                              <td className="py-3 px-4 font-semibold text-foreground truncate max-w-[200px]" title={signal.value}>{signal.value}</td>
+                              <td className="py-3 px-4 text-foreground/60 leading-relaxed">{signal.meaning}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-foreground/30 italic py-6">No forensic metadata logs available.</div>
+                )}
+              </motion.div>
+            )}
+
+            {/* TAB 3: DIGITAL SIGNATURES */}
+            {activeTab === "signatures" && (
+              <motion.div
+                key="signatures"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col gap-4"
+              >
+                <div className="flex flex-col gap-1 mb-2">
+                  <h4 className="text-sm font-bold text-foreground">Digital Certificate Verification</h4>
+                  <p className="text-xs text-foreground/40">Cryptographic certificates verifying the authenticity of the signing authority.</p>
+                </div>
+
+                {activeManifest?.signature ? (
+                  <div className="max-w-xl border border-card-border rounded-xl overflow-hidden bg-black/[0.01]">
+                    <div className="p-4 border-b border-card-border bg-foreground/[0.01] flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <span className="font-bold text-foreground text-[10px] uppercase tracking-wider">Signing Authority Chain</span>
+                      </div>
+                      <span className="text-[9px] font-mono py-0.5 px-2 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 rounded font-bold uppercase border border-emerald-500/20">
+                        {activeManifest.signature.alg}
+                      </span>
+                    </div>
+                    <div className="p-4 space-y-3.5 text-xs">
+                      <div className="flex justify-between border-b border-card-border pb-2 gap-4">
+                        <span className="text-foreground/45">Issuer Certificate Authority</span>
+                        <span className="text-foreground text-right font-medium">{activeManifest.signature.issuer || "Unknown Issuer"}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-card-border pb-2 gap-4">
+                        <span className="text-foreground/45">Common Name (CN)</span>
+                        <span className="text-foreground text-right font-medium">{activeManifest.signature.commonName || "Unknown CN"}</span>
+                      </div>
+                      <div className="flex justify-between pb-1 gap-4">
+                        <span className="text-foreground/45">Certificate Serial Number</span>
+                        <span className="text-foreground/70 font-mono text-[10px] text-right truncate max-w-[280px]">
+                          {activeManifest.signature.serialNumber || "None"}
                         </span>
                       </div>
-                      <div className="p-4.5 space-y-3.5 text-xs">
-                        <div className="flex justify-between border-b border-white/[0.03] pb-2 gap-4">
-                          <span className="text-white/40">Issuer Common Name</span>
-                          <span className="text-white text-right font-medium">{activeManifest.signature.issuer || "N/A"}</span>
-                        </div>
-                        <div className="flex justify-between border-b border-white/[0.03] pb-2 gap-4">
-                          <span className="text-white/40">Common Name</span>
-                          <span className="text-white text-right font-medium">{activeManifest.signature.commonName || "N/A"}</span>
-                        </div>
-                        <div className="flex justify-between border-b border-white/[0.03] pb-2 gap-4">
-                          <span className="text-white/40">Serial Number</span>
-                          <span className="text-white/70 font-mono text-[10px] text-right truncate max-w-[220px]">{activeManifest.signature.serialNumber || "N/A"}</span>
-                        </div>
-                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-foreground/30 italic py-6">No cryptographic signing certificate details available.</div>
+                )}
+              </motion.div>
+            )}
+
+            {/* TAB 4: RAW ASSERTIONS & JSON */}
+            {activeTab === "assertions" && (
+              <motion.div
+                key="assertions"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col gap-6"
+              >
+                {/* 4a. Cryptographic assertions */}
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1">
+                    <h4 className="text-sm font-bold text-foreground">Cryptographic Assertions</h4>
+                    <p className="text-xs text-foreground/40">C2PA claims signed securely inside the media file header block.</p>
+                  </div>
+                  
+                  {activeManifest?.assertions && activeManifest.assertions.length > 0 ? (
+                    <div className="flex flex-col gap-2">
+                      {activeManifest.assertions.map((assertion: any, index: number) => {
+                        const isExpanded = expandedAssertion === assertion.label;
+                        const jsonStr = JSON.stringify(assertion.data, null, 2);
+                        return (
+                          <div key={index} className="border border-card-border rounded-xl bg-black/[0.01] overflow-hidden transition-all">
+                            <button
+                              onClick={() => toggleAssertion(assertion.label)}
+                              className="w-full flex justify-between items-center p-3.5 text-left cursor-pointer hover:bg-foreground/[0.01]"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <Code className="w-4 h-4 text-foreground/35" />
+                                <span className="font-semibold text-xs text-foreground uppercase tracking-wider">{assertion.title}</span>
+                                <span className="text-[9px] font-mono text-foreground/30 hidden sm:inline">{assertion.label}</span>
+                              </div>
+                              {isExpanded ? <ChevronDown className="w-3.5 h-3.5 text-foreground/40" /> : <ChevronRight className="w-3.5 h-3.5 text-foreground/40" />}
+                            </button>
+                            <AnimatePresence>
+                              {isExpanded && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  className="border-t border-card-border bg-black/[0.04] overflow-hidden relative"
+                                >
+                                  <button
+                                    onClick={() => handleCopyText(jsonStr, assertion.label)}
+                                    className="absolute top-3 right-3 text-foreground/40 hover:text-foreground bg-foreground/[0.02] hover:bg-foreground/[0.06] border border-card-border p-1.5 rounded-lg transition-colors cursor-pointer"
+                                    title="Copy Assertion JSON"
+                                  >
+                                    {copiedAssertion === assertion.label ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                  </button>
+                                  <pre className="p-4 text-[11px] font-mono text-foreground/60 leading-relaxed overflow-x-auto max-h-[300px]">
+                                    {jsonStr}
+                                  </pre>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-white/30 text-xs italic">No Digital Signature Available</div>
+                    <div className="text-xs text-foreground/30 italic py-2">No assertions found in the manifest store.</div>
                   )}
                 </div>
-              )}
-            </div>
-          </div>
 
+                {/* 4b. Raw JSON explorer */}
+                <div className="flex flex-col gap-4 border-t border-card-border pt-6">
+                  <div className="flex justify-between items-center">
+                    <div className="flex flex-col gap-1">
+                      <h4 className="text-sm font-bold text-foreground">Manifest Store JSON</h4>
+                      <p className="text-xs text-foreground/40">Raw structured C2PA JSON tree parsed from the file's binary headers.</p>
+                    </div>
+                    <button
+                      onClick={handleCopyRawJson}
+                      className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider py-1.5 px-3 rounded-lg border border-card-border bg-foreground/[0.02] hover:bg-foreground/[0.06] text-foreground transition-all cursor-pointer"
+                    >
+                      {copiedJson ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>Copy Full JSON</span>
+                    </button>
+                  </div>
+
+                  <pre className="p-4 rounded-xl border border-card-border bg-black/[0.04] text-[11px] font-mono text-foreground/50 leading-relaxed overflow-x-auto max-h-[350px]">
+                    {JSON.stringify(allManifests, null, 2)}
+                  </pre>
+                </div>
+              </motion.div>
+            )}
+
+          </AnimatePresence>
         </div>
+
       </div>
+
     </div>
   );
 };
