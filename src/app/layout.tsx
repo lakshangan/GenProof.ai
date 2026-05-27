@@ -1,5 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  themeColor: "#071114",
+};
 
 export const metadata: Metadata = {
   title: "Provenance Intelligence | GenProof.ai",
@@ -14,7 +18,6 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/favicon.ico",
   },
-  themeColor: "#071114",
   openGraph: {
     title: "GenProof.ai — Provenance Intelligence",
     description: "Decode and verify cryptographic provenance signatures embedded in any image.",
