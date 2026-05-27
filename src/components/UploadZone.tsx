@@ -15,6 +15,8 @@ export const UploadZone: React.FC = () => {
   const error = useStore((state) => state.error);
   const setView = useStore((state) => state.setView);
 
+  const setScanningPreviewUrl = useStore((state) => state.setScanningPreviewUrl);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -40,6 +42,7 @@ export const UploadZone: React.FC = () => {
     setError(null);
     setAnalyzing(true);
     setAnalysis(null);
+    setScanningPreviewUrl(URL.createObjectURL(file));
 
     const startTime = Date.now();
 

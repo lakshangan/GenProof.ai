@@ -20,9 +20,13 @@ export default function Home() {
   const setAnalyzing = useStore((state) => state.setAnalyzing);
   const setAnalysis = useStore((state) => state.setAnalysis);
   const setError = useStore((state) => state.setError);
+  const setScanningPreviewUrl = useStore((state) => state.setScanningPreviewUrl);
 
   // Handle local sample test clicks
   const handleSampleClick = async (type: "verified" | "unverified") => {
+    const filename = type === "verified" ? "sample-verified.jpg" : "sample-unverified.jpg";
+    setScanningPreviewUrl(`/${filename}`);
+    
     setAnalyzing(true);
     setError(null);
     setAnalysis(null);
