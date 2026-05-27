@@ -22,8 +22,8 @@
   --error-light: rgba(239, 68, 68, 0.1);
   --neutral-muted: rgba(255, 255, 255, 0.35);
 
-  --aurora-color1: rgba(168, 85, 247, 0.2);
-  --aurora-color2: rgba(79, 70, 229, 0.2);
+  --aurora-color1: rgba(168, 85, 247, 0.35);
+  --aurora-color2: rgba(79, 70, 229, 0.35);
 }
 
 
@@ -291,6 +291,21 @@ pre::-webkit-scrollbar-thumb:hover {
   50% {
     opacity: 0.7;
     transform: scale(1.05);
+  }
+}
+
+@keyframes aurora-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1) translateX(0);
+  }
+  33% {
+    opacity: 0.85;
+    transform: scale(1.04) translateX(-2%);
+  }
+  66% {
+    opacity: 0.7;
+    transform: scale(1.02) translateX(2%);
   }
 }
 

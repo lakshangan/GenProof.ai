@@ -11,6 +11,7 @@ import Dashboard from "@/components/Dashboard";
 import C2PACompare from "@/components/C2PACompare";
 import HeroAnimated from "@/components/ui/hero-animated";
 import AuroraBackground from "@/components/ui/aurora-background";
+import GenProofLogo from "@/components/ui/GenProofLogo";
 
 import "lenis/dist/lenis.css";
 
@@ -77,11 +78,17 @@ export default function Home() {
     <ReactLenis root>
       <div className="min-h-screen flex flex-col justify-between relative overflow-hidden select-none bg-background text-foreground transition-colors duration-300">
         
-        {/* Shimmering Aurora background overlay */}
-        <AuroraBackground className="fixed inset-0 !w-full !h-full pointer-events-none z-0 opacity-40 mix-blend-screen" />
+        {/* Shimmering Aurora background overlay — fixed behind all content */}
+        <AuroraBackground className="fixed inset-0 w-full h-full pointer-events-none z-0" />
 
         {/* Top Navbar */}
-        <header className="w-full max-w-6xl mx-auto px-6 py-5 z-10 flex items-center justify-end border-b border-white/[0.06]">
+        <header className="w-full max-w-6xl mx-auto px-6 py-5 z-10 flex items-center justify-between border-b border-white/[0.06]">
+
+          {/* Logo mark */}
+          <div className="flex items-center gap-2.5 select-none">
+            <GenProofLogo size={28} className="text-indigo-400" />
+            <span className="text-sm font-bold tracking-tight text-white/80 hidden sm:inline">GenProof<span className="text-indigo-400">.ai</span></span>
+          </div>
 
           <div className="flex items-center gap-6">
             <nav className="hidden sm:flex items-center gap-6 text-xs font-semibold uppercase tracking-wider">
@@ -100,8 +107,6 @@ export default function Home() {
             </nav>
 
             <div className="flex items-center gap-2.5">
-
-
               <span className="hidden md:inline-flex items-center gap-2 text-[11px] font-semibold py-1 px-3 border border-success/20 bg-success/5 text-success rounded-full">
                 <span className="w-1.5 h-1.5 rounded-full bg-success glow-dot" />
                 C2PA Active
