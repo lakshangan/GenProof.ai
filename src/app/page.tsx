@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { ReactLenis } from "lenis/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, ShieldAlert, Sparkles, HelpCircle, Sun, Moon, Info, Lock } from "@/components/CustomIcons";
+import { ShieldCheck, ShieldAlert, Sparkles, HelpCircle, Info, Lock } from "@/components/CustomIcons";
 import useStore from "@/store/useStore";
 import UploadZone from "@/components/UploadZone";
 import ScanningSequence from "@/components/ScanningSequence";
@@ -20,18 +20,6 @@ export default function Home() {
   const setAnalyzing = useStore((state) => state.setAnalyzing);
   const setAnalysis = useStore((state) => state.setAnalysis);
   const setError = useStore((state) => state.setError);
-  const theme = useStore((state) => state.theme);
-  const toggleTheme = useStore((state) => state.toggleTheme);
-
-  // Initialize theme class on mount
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (theme === "light") {
-      root.classList.add("light-theme");
-    } else {
-      root.classList.remove("light-theme");
-    }
-  }, [theme]);
 
   // Handle local sample test clicks
   const handleSampleClick = async (type: "verified" | "unverified") => {
@@ -123,14 +111,7 @@ export default function Home() {
             </nav>
 
             <div className="flex items-center gap-2.5">
-              {/* Theme Toggle */}
-              <button
-                onClick={toggleTheme}
-                className="w-9 h-9 border border-card-border rounded-xl flex justify-center items-center bg-white/5 hover:border-white/20 transition-all text-foreground/75 hover:text-white"
-                title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              >
-                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
+
 
               <span className="hidden md:inline-flex items-center gap-2 text-[11px] font-semibold py-1 px-3 border border-success/20 bg-success/5 text-success rounded-full">
                 <span className="w-1.5 h-1.5 rounded-full bg-success glow-dot" />

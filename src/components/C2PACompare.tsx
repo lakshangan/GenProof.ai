@@ -100,7 +100,13 @@ export const C2PACompare: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 z-10">
         
         {/* Left Image Upload Slot */}
-        <div className="rounded-2xl p-5 border border-card-border bg-card-bg/40 backdrop-blur-xl flex flex-col gap-4 shadow-sm">
+        <div className="rounded-2xl p-5 border border-card-border bg-card-bg/40 backdrop-blur-xl flex flex-col gap-4 shadow-sm relative group">
+          {/* Viewfinder Corners */}
+          <div className="absolute top-4 left-4 w-3.5 h-3.5 border-t-2 border-l-2 border-foreground/15 rounded-tl-sm pointer-events-none group-hover:border-foreground/35 transition-colors" />
+          <div className="absolute top-4 right-4 w-3.5 h-3.5 border-t-2 border-r-2 border-foreground/15 rounded-tr-sm pointer-events-none group-hover:border-foreground/35 transition-colors" />
+          <div className="absolute bottom-4 left-4 w-3.5 h-3.5 border-b-2 border-l-2 border-foreground/15 rounded-bl-sm pointer-events-none group-hover:border-foreground/35 transition-colors" />
+          <div className="absolute bottom-4 right-4 w-3.5 h-3.5 border-b-2 border-r-2 border-foreground/15 rounded-br-sm pointer-events-none group-hover:border-foreground/35 transition-colors" />
+
           <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/30">Source Image A</span>
           
           {!leftReport ? (
@@ -161,7 +167,13 @@ export const C2PACompare: React.FC = () => {
         </div>
 
         {/* Right Image Upload Slot */}
-        <div className="rounded-2xl p-5 border border-card-border bg-card-bg/40 backdrop-blur-xl flex flex-col gap-4 shadow-sm">
+        <div className="rounded-2xl p-5 border border-card-border bg-card-bg/40 backdrop-blur-xl flex flex-col gap-4 shadow-sm relative group">
+          {/* Viewfinder Corners */}
+          <div className="absolute top-4 left-4 w-3.5 h-3.5 border-t-2 border-l-2 border-foreground/15 rounded-tl-sm pointer-events-none group-hover:border-foreground/35 transition-colors" />
+          <div className="absolute top-4 right-4 w-3.5 h-3.5 border-t-2 border-r-2 border-foreground/15 rounded-tr-sm pointer-events-none group-hover:border-foreground/35 transition-colors" />
+          <div className="absolute bottom-4 left-4 w-3.5 h-3.5 border-b-2 border-l-2 border-foreground/15 rounded-bl-sm pointer-events-none group-hover:border-foreground/35 transition-colors" />
+          <div className="absolute bottom-4 right-4 w-3.5 h-3.5 border-b-2 border-r-2 border-foreground/15 rounded-br-sm pointer-events-none group-hover:border-foreground/35 transition-colors" />
+
           <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/30">Source Image B</span>
           
           {!rightReport ? (

@@ -213,7 +213,13 @@ export const Dashboard: React.FC = () => {
         
         {/* Left Column: Image Card */}
         <div className="w-full lg:w-5/12 flex flex-col">
-          <div className="flex-1 rounded-[1.5rem] border border-card-border bg-card-bg/40 backdrop-blur-xl p-4 flex flex-col justify-between shadow-sm">
+          <div className="flex-1 rounded-[1.5rem] border border-card-border bg-card-bg/40 backdrop-blur-xl p-4 flex flex-col justify-between shadow-sm relative">
+            {/* Viewfinder Corners */}
+            <div className="absolute top-4.5 left-4.5 w-3.5 h-3.5 border-t-2 border-l-2 border-foreground/15 rounded-tl-sm pointer-events-none" />
+            <div className="absolute top-4.5 right-4.5 w-3.5 h-3.5 border-t-2 border-r-2 border-foreground/15 rounded-tr-sm pointer-events-none" />
+            <div className="absolute bottom-4.5 left-4.5 w-3.5 h-3.5 border-b-2 border-l-2 border-foreground/15 rounded-bl-sm pointer-events-none" />
+            <div className="absolute bottom-4.5 right-4.5 w-3.5 h-3.5 border-b-2 border-r-2 border-foreground/15 rounded-br-sm pointer-events-none" />
+
             <div className="aspect-[4/3] rounded-[1rem] overflow-hidden bg-black/[0.04] dark:bg-black/45 relative flex items-center justify-center border border-card-border/60">
               {activeManifest?.thumbnailBase64 ? (
                 <img 
@@ -249,7 +255,12 @@ export const Dashboard: React.FC = () => {
 
         {/* Right Column: Authenticity Summary Card */}
         <div className="w-full lg:w-7/12 flex flex-col">
-          <div className={`flex-1 rounded-[1.5rem] border ${trustStyle.borderColor} ${trustStyle.bgColor} p-6 sm:p-7 flex flex-col justify-between shadow-sm relative overflow-hidden`}>
+          <div className={`flex-1 rounded-[1.5rem] border ${trustStyle.borderColor} ${trustStyle.bgColor} p-6 sm:p-7 flex flex-col justify-between shadow-sm relative`}>
+            {/* Viewfinder Corners */}
+            <div className="absolute top-5 left-5 w-4 h-4 border-t-2 border-l-2 border-foreground/15 rounded-tl-sm pointer-events-none" />
+            <div className="absolute top-5 right-5 w-4 h-4 border-t-2 border-r-2 border-foreground/15 rounded-tr-sm pointer-events-none" />
+            <div className="absolute bottom-5 left-5 w-4 h-4 border-b-2 border-l-2 border-foreground/15 rounded-bl-sm pointer-events-none" />
+            <div className="absolute bottom-5 right-5 w-4 h-4 border-b-2 border-r-2 border-foreground/15 rounded-br-sm pointer-events-none" />
             
             {/* Title & Trust Status */}
             <div>

@@ -123,6 +123,12 @@ export const UploadZone: React.FC = () => {
         className={`relative w-full rounded-[28px] border border-solid cursor-pointer group glow-pulse transition-shadow duration-300 ${isDragActive ? "glow-border" : ""}`}
         style={{ minHeight: "260px" }}
       >
+        {/* Viewfinder Corners */}
+        <div className="absolute top-5 left-5 w-4.5 h-4.5 border-t-2 border-l-2 border-foreground/15 rounded-tl-sm pointer-events-none group-hover:border-foreground/30 transition-colors" />
+        <div className="absolute top-5 right-5 w-4.5 h-4.5 border-t-2 border-r-2 border-foreground/15 rounded-tr-sm pointer-events-none group-hover:border-foreground/30 transition-colors" />
+        <div className="absolute bottom-5 left-5 w-4.5 h-4.5 border-b-2 border-l-2 border-foreground/15 rounded-bl-sm pointer-events-none group-hover:border-foreground/30 transition-colors" />
+        <div className="absolute bottom-5 right-5 w-4.5 h-4.5 border-b-2 border-r-2 border-foreground/15 rounded-br-sm pointer-events-none group-hover:border-foreground/30 transition-colors" />
+
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 p-10">
           <motion.div
             animate={{ scale: isDragActive ? 1.1 : 1 }}

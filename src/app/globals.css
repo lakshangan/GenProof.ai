@@ -23,21 +23,6 @@
   --neutral-muted: rgba(255, 255, 255, 0.35);
 }
 
-.light-theme {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card-bg: rgba(255, 255, 255, 0.7);
-  --card-border: rgba(15, 23, 42, 0.06);
-  --accent: #4f46e5;
-  --accent-glow: rgba(79, 70, 229, 0.05);
-  --success: #059669;
-  --success-light: rgba(5, 150, 105, 0.06);
-  --warning: #d97706;
-  --warning-light: rgba(217, 119, 6, 0.06);
-  --error: #dc2626;
-  --error-light: rgba(220, 38, 38, 0.06);
-  --neutral-muted: rgba(15, 23, 42, 0.45);
-}
 
 @theme inline {
   --color-background: var(--background);
@@ -85,8 +70,7 @@ body {
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
 
-.light-theme ::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.08); }
-.light-theme ::-webkit-scrollbar-thumb:hover { background: rgba(15,23,42,0.16); }
+
 
 /* ──────────────────────────────────────────────
    SUBTLE BACKGROUND
@@ -131,9 +115,7 @@ body {
   background-size: 24px 24px;
 }
 
-.light-theme .grid-backdrop {
-  background-image: radial-gradient(rgba(15, 23, 42, 0.008) 1px, transparent 1px);
-}
+
 
 /* Clean, flat border styling */
 .glow-border {
@@ -150,10 +132,7 @@ body {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }
 
-.light-theme .glow-pulse:hover {
-  border-color: rgba(99, 102, 241, 0.3) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-}
+
 
 /* Logo badge glow - clean and solid */
 .glow-logo {
@@ -176,9 +155,7 @@ body {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
 }
 
-.light-theme .glass-panel {
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
-}
+
 
 /* ──────────────────────────────────────────────
    SUBTLE NOISE OVERLAY (CLEANED)
@@ -303,7 +280,5 @@ pre::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
 }
 
-.light-theme .cert-pass-border {
-  background: linear-gradient(135deg, rgba(15,23,42,0.08) 0%, rgba(15,23,42,0.02) 100%);
-}
+
 
