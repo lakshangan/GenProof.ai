@@ -2,15 +2,24 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Provenance Intelligence",
+  title: "Provenance Intelligence | GenProof.ai",
   description: "Verify and decode embedded C2PA Content Credentials, cryptographic signatures, and AI-generation metadata from media files.",
   keywords: ["C2PA", "Content Credentials", "Provenance", "AI Detection", "Metadata", "Cryptographic Verification"],
-  authors: [{ name: "Provenance Intelligence" }],
+  authors: [{ name: "GenProof.ai" }],
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
+  themeColor: "#071114",
   openGraph: {
-    title: "Provenance Intelligence",
+    title: "GenProof.ai — Provenance Intelligence",
     description: "Decode and verify cryptographic provenance signatures embedded in any image.",
     type: "website",
-  }
+  },
 };
 
 export default function RootLayout({
