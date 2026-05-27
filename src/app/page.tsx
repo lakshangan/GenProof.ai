@@ -3,13 +3,14 @@
 import React from "react";
 import { ReactLenis } from "lenis/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, ShieldAlert, Sparkles, HelpCircle, Info, Lock } from "@/components/CustomIcons";
+import { ShieldAlert, Sparkles, HelpCircle, Info, Lock } from "@/components/CustomIcons";
 import useStore from "@/store/useStore";
 import UploadZone from "@/components/UploadZone";
 import ScanningSequence from "@/components/ScanningSequence";
 import Dashboard from "@/components/Dashboard";
 import C2PACompare from "@/components/C2PACompare";
 import HeroAnimated from "@/components/ui/hero-animated";
+import AuroraBackground from "@/components/ui/aurora-background";
 
 import "lenis/dist/lenis.css";
 
@@ -76,27 +77,11 @@ export default function Home() {
     <ReactLenis root>
       <div className="min-h-screen flex flex-col justify-between relative overflow-hidden select-none bg-background text-foreground transition-colors duration-300">
         
-        {/* Animated gradient background */}
-        <div className="gradient-bg" aria-hidden="true">
-          <div className="bloom-top" />
-          <div className="bloom-bl" />
-          <div className="bloom-br" />
-        </div>
-
-        {/* Technical dot grid backdrop */}
-        <div className="grid-backdrop" aria-hidden="true" />
-
-        {/* Film grain */}
-        <div className="cinematic-noise" />
+        {/* Shimmering Aurora background overlay */}
+        <AuroraBackground className="fixed inset-0 !w-full !h-full pointer-events-none z-0 opacity-40 mix-blend-screen" />
 
         {/* Top Navbar */}
-        <header className="w-full max-w-6xl mx-auto px-6 py-5 z-10 flex items-center justify-between border-b border-white/[0.06]">
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setView("landing")}>
-            <div className="w-7 h-7 rounded-xl bg-accent flex justify-center items-center glow-logo">
-              <ShieldCheck className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-semibold text-white text-sm tracking-wide">GenProof.ai</span>
-          </div>
+        <header className="w-full max-w-6xl mx-auto px-6 py-5 z-10 flex items-center justify-end border-b border-white/[0.06]">
 
           <div className="flex items-center gap-6">
             <nav className="hidden sm:flex items-center gap-6 text-xs font-semibold uppercase tracking-wider">
@@ -223,7 +208,7 @@ export default function Home() {
             <span>Files never leave your device. All parsing is done in memory and discarded.</span>
           </div>
           <div>
-            <span>© {new Date().getFullYear()} GenProof.ai • Provenance Intelligence Agency</span>
+            <span>© {new Date().getFullYear()} • Provenance Intelligence</span>
           </div>
         </footer>
       </div>

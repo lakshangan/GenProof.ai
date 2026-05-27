@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "GenProof.ai — Provenance Intelligence",
+  title: "Provenance Intelligence",
   description: "Verify and decode embedded C2PA Content Credentials, cryptographic signatures, and AI-generation metadata from media files.",
   keywords: ["C2PA", "Content Credentials", "Provenance", "AI Detection", "Metadata", "Cryptographic Verification"],
-  authors: [{ name: "GenProof.ai" }],
+  authors: [{ name: "Provenance Intelligence" }],
   openGraph: {
-    title: "GenProof.ai — Provenance Intelligence",
+    title: "Provenance Intelligence",
     description: "Decode and verify cryptographic provenance signatures embedded in any image.",
     type: "website",
   }
